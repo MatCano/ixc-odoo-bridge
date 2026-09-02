@@ -1,4 +1,5 @@
 import os
+import json
 import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -40,6 +41,11 @@ POLL_INTERVAL_MINUTES = int(os.getenv("POLL_INTERVAL_MINUTES", "2"))
 # em clientes criados em dias anteriores, ex: prospecto que virou lead).
 DELTA_LOOKBACK_HOURS = int(os.getenv("DELTA_LOOKBACK_HOURS", "48"))
 PAGE_SIZE = int(os.getenv("PAGE_SIZE", "100"))
+
+# Arquivo onde guardamos o "watermark" (último timestamp já processado) e a lista
+# de id_ixc já importados. Sem isso o sync re-varre a MESMA janela a cada ciclo,
+# batendo na API do IXC e re-gravando os mesmos registros no Odoo o dia inteiro.
+SYNC_STATE_PATH = os.getenv("SYNC_STATE_PATH", "/app/.ixc_sync_state.json")
 
 # O IXC grava horários no fuso de Brasília. O container do Easypanel roda em
 # UTC, então SEM isso o filtro de data fica até 3h "no futuro" em relação
@@ -110,12 +116,14 @@ def decidir_roteamento(tipo_pessoa: str, documento: str, cliente_ativo: str,
 # ==========================================
 # Processamento: cria/atualiza Contato + (opcional) Lead
 # ==========================================
-def processar_e_enviar_para_odoo(payload: dict):
+def processar_e_enviar_para_odoo(payload: dict) -> bool:
+    """Retorna True se o registro foi processado (ou intencionalmente ignorado),
+    False se falhou — para poder ser reprocessado no próximo ciclo."""
     try:
         uid, models = get_odoo_connection()
         if not uid:
             logger.error("Falha ao autenticar no Odoo.")
-            return
+            return False
 
         id_ixc = str(payload.get("id_ixc"))
         nome = payload.get("nome", "Sem Nome")
@@ -130,7 +138,7 @@ def processar_e_enviar_para_odoo(payload: dict):
 
         if not documento_digits:
             logger.info(f"IXC {id_ixc} ignorado (sem CPF/CNPJ): {nome}")
-            return
+            return True
 
         eh_empresa = tipo_pessoa == "J" or len(documento_digits) > 11
 
@@ -174,7 +182,7 @@ def processar_e_enviar_para_odoo(payload: dict):
 
         if not deve_criar_lead:
             logger.info(f"IXC {id_ixc} é cliente ativo/antigo: mantido só em Contatos.")
-            return
+            return True
 
         marcador = _marcador_ixc(id_ixc)
         lead_ids = models.execute_kw(
@@ -204,96 +212,120 @@ def processar_e_enviar_para_odoo(payload: dict):
             )
             logger.info(f"Lead IXC {id_ixc} criado com ID {lead_id} ({tag}).")
 
+        return True
+
     except Exception as e:
         logger.error(f"Erro ao processar IXC {payload.get('id_ixc')}: {str(e)}")
+        return False
 
 
 # ==========================================
-# Polling Delta Sync (com paginação real)
+# Polling Delta Sync (incremental com watermark)
 # ==========================================
+def _carregar_estado():
+    try:
+        with open(SYNC_STATE_PATH, encoding="utf-8") as f:
+            estado = json.load(f)
+        return estado.get("ultima_atualizacao", ""), set(estado.get("processados", []))
+    except Exception:
+        return "", set()
+
+
+def _salvar_estado(ultima_atualizacao: str, processados: set):
+    try:
+        with open(SYNC_STATE_PATH, "w", encoding="utf-8") as f:
+            json.dump(
+                {"ultima_atualizacao": ultima_atualizacao, "processados": sorted(processados)},
+                f,
+            )
+    except Exception as e:
+        logger.warning(f"Não foi possível salvar estado do sync: {str(e)}")
+
+
 def sync_novos_clientes_ixc():
     try:
         logger.info("Iniciando varredura de leads no IXC...")
         headers = {"ixcsoft": "listar", "Content-Type": "application/json"}
 
         agora = datetime.now(TZ_BRASIL)
-        hoje = agora.strftime("%Y-%m-%d")
-        ultima_atualizacao_corte = (
-            agora - timedelta(hours=DELTA_LOOKBACK_HOURS)
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        watermark, processados = _carregar_estado()
 
-        # Varre em duas frentes (sem duplicar):
-        # 1) data_cadastro >= hoje (só a DATA, sem hora) -> pega os leads criados
-        #    hoje, mesmo que tenham sido cadastrados horas antes da varredura.
-        # 2) ultima_atualizacao nos últimos DELTA_LOOKBACK_HOURS -> pega mudanças
-        #    de status em clientes de dias anteriores.
-        janelas = [
-            ("cliente.data_cadastro", hoje),
-            ("cliente.ultima_atualizacao", ultima_atualizacao_corte),
-        ]
+        # Primeira execução: ainda não temos referência — faz o "backfill" inicial
+        # procurando tudo que mudou nas últimas DELTA_LOOKBACK_HOURS.
+        if not watermark:
+            watermark = (agora - timedelta(hours=DELTA_LOOKBACK_HOURS)).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            logger.info(f"Primeira execução: backfill desde {watermark} (Brasília).")
 
-        vistos = set()
+        pagina = 1
+        novos = 0
+        max_ultima = watermark
 
-        for qtype, query in janelas:
-            pagina = 1
-            while True:
-                query_payload = {
-                    "qtype": qtype,
-                    "query": query,
-                    "oper": ">=",
-                    "page": str(pagina),
-                    "rp": str(PAGE_SIZE),
-                    "sortname": "cliente.id",
-                    "sortorder": "desc",
-                }
+        while True:
+            query_payload = {
+                "qtype": "cliente.ultima_atualizacao",
+                "query": watermark,
+                "oper": ">=",
+                "page": str(pagina),
+                "rp": str(PAGE_SIZE),
+                "sortname": "cliente.id",
+                "sortorder": "desc",
+            }
 
-                try:
-                    response = requests.post(
-                        f"{IXC_HOST}/webservice/v1/cliente",
-                        json=query_payload,
-                        headers=headers,
-                        auth=(IXC_USER, IXC_PASS),
-                        timeout=15,
-                    )
-                except requests.RequestException as e:
-                    logger.error(f"Falha de rede na API do IXC: {str(e)}")
-                    break
+            try:
+                response = requests.post(
+                    f"{IXC_HOST}/webservice/v1/cliente",
+                    json=query_payload,
+                    headers=headers,
+                    auth=(IXC_USER, IXC_PASS),
+                    timeout=15,
+                )
+            except requests.RequestException as e:
+                logger.error(f"Falha de rede na API do IXC: {str(e)}")
+                break
 
-                if response.status_code != 200:
-                    logger.warning(
-                        f"Erro na API do IXC ({qtype}): Status {response.status_code} "
-                        f"{response.text[:300]}"
-                    )
-                    break
+            if response.status_code != 200:
+                logger.warning(
+                    f"Erro na API do IXC: Status {response.status_code} {response.text[:300]}"
+                )
+                break
 
-                registros = response.json().get("registros", [])
+            registros = response.json().get("registros", [])
 
-                for item in registros:
-                    id_ixc = str(item.get("id"))
-                    if id_ixc in vistos:
-                        continue
-                    vistos.add(id_ixc)
+            for item in registros:
+                id_ixc = str(item.get("id"))
+                # Já foi importado em um ciclo anterior — pula (evita re-gravar).
+                if id_ixc in processados:
+                    continue
 
-                    payload = {
-                        "id_ixc": id_ixc,
-                        "nome": item.get("razao", ""),
-                        "cnpj_cpf": item.get("cnpj_cpf", ""),
-                        "telefone": item.get("telefone_celular", "")
-                        or item.get("telefone_comercial", ""),
-                        "email": item.get("email", ""),
-                        "tipo_pessoa": item.get("tipo_pessoa", "F"),
-                        "ativo": item.get("ativo", "N"),
-                        "status_prospeccao": item.get("status_prospeccao", ""),
-                        "data_cadastro": item.get("data_cadastro", ""),
-                    }
-                    processar_e_enviar_para_odoo(payload)
+                ok = processar_e_enviar_para_odoo({
+                    "id_ixc": id_ixc,
+                    "nome": item.get("razao", ""),
+                    "cnpj_cpf": item.get("cnpj_cpf", ""),
+                    "telefone": item.get("telefone_celular", "")
+                    or item.get("telefone_comercial", ""),
+                    "email": item.get("email", ""),
+                    "tipo_pessoa": item.get("tipo_pessoa", "F"),
+                    "ativo": item.get("ativo", "N"),
+                    "status_prospeccao": item.get("status_prospeccao", ""),
+                    "data_cadastro": item.get("data_cadastro", ""),
+                })
 
-                # Se veio menos que o tamanho da página, acabou — senão, próxima página
-                if len(registros) < PAGE_SIZE:
-                    break
-                pagina += 1
+                if ok:
+                    processados.add(id_ixc)
+                    ua = str(item.get("ultima_atualizacao") or "")
+                    if ua and ua > max_ultima:
+                        max_ultima = ua
+                    novos += 1
 
-        logger.info(f"Ciclo concluído: {len(vistos)} registros processados.")
+            # Se veio menos que o tamanho da página, acabou — senão, próxima página
+            if len(registros) < PAGE_SIZE:
+                break
+            pagina += 1
+
+        _salvar_estado(max_ultima, processados)
+        logger.info(f"Ciclo concluído: {novos} novos registros importados (watermark {max_ultima}).")
 
     except Exception as e:
         logger.error(f"Falha no ciclo de Polling do IXC: {str(e)}")
