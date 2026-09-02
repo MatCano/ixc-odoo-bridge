@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import logging
 from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
 from pydantic import BaseModel
@@ -36,6 +37,11 @@ FUNIL_ODOO = {
 POLL_INTERVAL_MINUTES = int(os.getenv("POLL_INTERVAL_MINUTES", "2"))
 DELTA_WINDOW_MINUTES = int(os.getenv("DELTA_WINDOW_MINUTES", "3"))
 PAGE_SIZE = int(os.getenv("PAGE_SIZE", "100"))
+
+# O IXC grava horários no fuso de Brasília. O container do Easypanel roda em
+# UTC, então SEM isso o filtro de data fica até 3h "no futuro" em relação
+# ao relógio real do IXC, e o delta sync nunca casa nada.
+TZ_BRASIL = ZoneInfo("America/Sao_Paulo")
 
 
 # ==========================================
@@ -81,7 +87,7 @@ def decidir_roteamento(tipo_pessoa: str, documento: str, cliente_ativo: str,
     3. Cliente já ativo e antigo -> só Contatos, NÃO vira oportunidade
        (evita poluir o funil de Retenção com clientes que já são clientes).
     """
-    hoje_str = datetime.now().strftime("%Y-%m-%d")
+    hoje_str = datetime.now(TZ_BRASIL).strftime("%Y-%m-%d")
     eh_cadastro_recente = bool(data_cadastro) and data_cadastro >= hoje_str
     eh_pj = tipo_pessoa == "J" or len(documento) > 11
 
@@ -204,7 +210,7 @@ def sync_novos_clientes_ixc():
         headers = {"ixcsoft": "listar", "Content-Type": "application/json"}
 
         data_corte = (
-            datetime.now() - timedelta(minutes=DELTA_WINDOW_MINUTES)
+            datetime.now(TZ_BRASIL) - timedelta(minutes=DELTA_WINDOW_MINUTES)
         ).strftime("%Y-%m-%d %H:%M:%S")
 
         pagina = 1
