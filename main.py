@@ -212,7 +212,7 @@ def sync_novos_clientes_ixc():
 
         while True:
             query_payload = {
-                "qtype": "cliente.data_cadastro",
+                "qtype": "cliente.ultima_atualizacao",
                 "query": data_corte,
                 "oper": ">=",
                 "page": str(pagina),
