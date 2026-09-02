@@ -340,6 +340,8 @@ scheduler.add_job(
     "interval",
     minutes=POLL_INTERVAL_MINUTES,
     max_instances=1,
+    # dispara a primeira varredura assim que o app sobe (depois segue no intervalo)
+    next_run_time=datetime.now(),
 )
 
 
