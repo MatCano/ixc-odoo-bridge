@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wa_message_user,wa.message.user,model_maisfibra_whatsapp_message,base.group_user,1,0,0,0
+access_wa_message_manager,wa.message.manager,model_maisfibra_whatsapp_message,base.group_system,1,1,1,1
+access_wa_composer_user,wa.composer.user,model_maisfibra_whatsapp_composer,base.group_user,1,1,1,1

@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mf_condominio_user,mf.condominio.user,model_maisfibra_condominio,base.group_user,1,0,0,0
+access_mf_condominio_mgr,mf.condominio.mgr,model_maisfibra_condominio,sales_team.group_sale_manager,1,1,1,1
+access_mf_plano_user,mf.plano.user,model_maisfibra_plano,base.group_user,1,0,0,0
+access_mf_plano_mgr,mf.plano.mgr,model_maisfibra_plano,sales_team.group_sale_manager,1,1,1,1
+access_mf_canal_user,mf.canal.user,model_maisfibra_canal_venda,base.group_user,1,0,0,0
+access_mf_canal_mgr,mf.canal.mgr,model_maisfibra_canal_venda,sales_team.group_sale_manager,1,1,1,1

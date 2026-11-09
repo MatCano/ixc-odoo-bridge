@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_mf" model="ir.ui.view">
+        <field name="name">crm.lead.form.maisfibra</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_mf_consultar_credito" type="object" string="Consultar crédito"
+                        icon="fa-search-dollar" invisible="not mf_cpf_cnpj"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Cliente &amp; Instalação" name="mf_instalacao">
+                    <group>
+                        <group string="Identificação">
+                            <field name="mf_cpf_cnpj"/>
+                            <field name="mf_origem"/>
+                            <field name="mf_canal_venda_id" options="{'no_create': True}"/>
+                            <field name="mf_indicado_por_id"/>
+                            <field name="mf_concorrente"/>
+                        </group>
+                        <group string="Endereço de instalação">
+                            <field name="mf_condominio_id" options="{'no_create': True}"/>
+                            <field name="mf_bloco"/>
+                            <field name="mf_apartamento"/>
+                            <field name="mf_cep"/>
+                            <field name="mf_endereco"/>
+                            <field name="mf_numero"/>
+                            <field name="mf_complemento"/>
+                            <field name="mf_bairro"/>
+                            <field name="mf_cidade"/>
+                        </group>
+                    </group>
+                    <group string="Crédito">
+                        <field name="mf_credito_status" readonly="1"/>
+                        <field name="mf_credito_obs" readonly="1" invisible="not mf_credito_obs"/>
+                    </group>
+                    <group string="IXC">
+                        <field name="mf_stage_code" invisible="1"/>
+                        <field name="mf_ixc_contato_id" readonly="1"/>
+                        <field name="mf_ixc_cliente_id" readonly="1"/>
+                    </group>
+                </page>
+                <page string="Negociação" name="mf_negociacao"
+                      invisible="mf_stage_code not in ('recolher_docs', 'negociacao', 'aguardando_assinatura', 'perdemos')">
+                    <group>
+                        <field name="mf_plano_id" options="{'no_create': True}"/>
+                        <field name="mf_descricao_produto"/>
+                        <field name="mf_ixc_negociacao_id" readonly="1"/>
+                    </group>
+                    <div class="text-muted">
+                        Ao mover para <b>Negociação</b>, a negociação é criada no IXC.
+                        Ganho → <b>Aguardar Assinatura</b>; perda → <b>Perdemos</b> (vem do IXC automaticamente).
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Busca por CPF/CNPJ, condomínio e IDs do IXC -->
+    <record id="crm_lead_search_mf" model="ir.ui.view">
+        <field name="name">crm.lead.search.maisfibra</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="mf_cpf_cnpj"/>
+                <field name="mf_condominio_id"/>
+                <field name="mf_ixc_cliente_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

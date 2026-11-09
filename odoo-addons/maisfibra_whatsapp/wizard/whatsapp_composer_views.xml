@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="whatsapp_composer_view_form" model="ir.ui.view">
+        <field name="name">maisfibra.whatsapp.composer.form</field>
+        <field name="model">maisfibra.whatsapp.composer</field>
+        <field name="arch" type="xml">
+            <form string="Enviar WhatsApp">
+                <group>
+                    <field name="phone" widget="phone"/>
+                    <field name="body" placeholder="Digite a mensagem..."/>
+                    <field name="res_model" invisible="1"/>
+                    <field name="res_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_send" type="object" class="btn-primary" icon="fa-whatsapp" string="Enviar"/>
+                    <button special="cancel" string="Cancelar" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
