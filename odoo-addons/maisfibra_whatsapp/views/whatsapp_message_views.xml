@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="whatsapp_message_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.whatsapp.message.list</field>
+        <field name="model">maisfibra.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-info="direction == 'in'" decoration-danger="state == 'error'">
+                <field name="create_date" string="Data"/>
+                <field name="direction"/>
+                <field name="phone"/>
+                <field name="partner_id"/>
+                <field name="lead_id"/>
+                <field name="body"/>
+                <field name="user_id" optional="hide"/>
+                <field name="state" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="whatsapp_message_view_form" model="ir.ui.view">
+        <field name="name">maisfibra.whatsapp.message.form</field>
+        <field name="model">maisfibra.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="direction"/>
+                            <field name="phone"/>
+                            <field name="partner_id"/>
+                            <field name="lead_id"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Data"/>
+                            <field name="state"/>
+                            <field name="user_id"/>
+                            <field name="external_id"/>
+                        </group>
+                    </group>
+                    <field name="body"/>
+                    <field name="error_message" invisible="not error_message"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="whatsapp_message_view_search" model="ir.ui.view">
+        <field name="name">maisfibra.whatsapp.message.search</field>
+        <field name="model">maisfibra.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="phone"/>
+                <field name="partner_id"/>
+                <field name="lead_id"/>
+                <field name="body"/>
+                <filter name="in" string="Recebidas" domain="[('direction', '=', 'in')]"/>
+                <filter name="out" string="Enviadas" domain="[('direction', '=', 'out')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_whatsapp_messages" model="ir.actions.act_window">
+        <field name="name">Mensagens WhatsApp</field>
+        <field name="res_model">maisfibra.whatsapp.message</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_whatsapp_root" name="WhatsApp" parent="crm.crm_menu_root" sequence="25"/>
+    <menuitem id="menu_whatsapp_messages" name="Mensagens" parent="menu_whatsapp_root"
+              action="action_whatsapp_messages" sequence="10"/>
+</odoo>

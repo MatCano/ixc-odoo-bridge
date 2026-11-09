@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_view_form_mf" model="ir.ui.view">
+        <field name="name">res.partner.form.maisfibra</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Instalação" name="mf_instalacao">
+                    <group>
+                        <group string="Endereço de instalação">
+                            <field name="mf_condominio_id" options="{'no_create': True}"/>
+                            <field name="mf_bloco"/>
+                            <field name="mf_apartamento"/>
+                            <field name="mf_cep"/>
+                            <field name="mf_endereco"/>
+                            <field name="mf_numero"/>
+                            <field name="mf_complemento"/>
+                            <field name="mf_bairro"/>
+                            <field name="mf_cidade"/>
+                        </group>
+                        <group string="IXC">
+                            <field name="mf_ixc_contato_id" readonly="1"/>
+                            <field name="mf_ixc_cliente_id" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

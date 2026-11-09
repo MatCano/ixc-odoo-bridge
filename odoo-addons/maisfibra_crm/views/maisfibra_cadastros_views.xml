@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Condomínios -->
+    <record id="condominio_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.condominio.list</field>
+        <field name="model">maisfibra.condominio</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="endereco"/>
+                <field name="numero"/>
+                <field name="bairro"/>
+                <field name="cep"/>
+                <field name="cidade"/>
+                <field name="ixc_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="condominio_view_form" model="ir.ui.view">
+        <field name="name">maisfibra.condominio.form</field>
+        <field name="model">maisfibra.condominio</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="endereco"/>
+                            <field name="numero"/>
+                            <field name="bairro"/>
+                        </group>
+                        <group>
+                            <field name="cep"/>
+                            <field name="cidade"/>
+                            <field name="ixc_id"/>
+                            <field name="ixc_cidade_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_condominio" model="ir.actions.act_window">
+        <field name="name">Condomínios</field>
+        <field name="res_model">maisfibra.condominio</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p>Sincronizados automaticamente do IXC pelo bridge.</p></field>
+    </record>
+
+    <!-- Planos -->
+    <record id="plano_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.plano.list</field>
+        <field name="model">maisfibra.plano</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="descricao"/>
+                <field name="ixc_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_plano" model="ir.actions.act_window">
+        <field name="name">Planos de negociação</field>
+        <field name="res_model">maisfibra.plano</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Canais de venda -->
+    <record id="canal_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.canal.venda.list</field>
+        <field name="model">maisfibra.canal.venda</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="ixc_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_canal" model="ir.actions.act_window">
+        <field name="name">Canais de venda</field>
+        <field name="res_model">maisfibra.canal.venda</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_mf_root" name="MaisFibra" parent="crm.crm_menu_config" sequence="90"/>
+    <menuitem id="menu_mf_condominio" name="Condomínios" parent="menu_mf_root" action="action_condominio" sequence="10"/>
+    <menuitem id="menu_mf_plano" name="Planos de negociação" parent="menu_mf_root" action="action_plano" sequence="20"/>
+    <menuitem id="menu_mf_canal" name="Canais de venda" parent="menu_mf_root" action="action_canal" sequence="30"/>
+</odoo>

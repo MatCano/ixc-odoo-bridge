@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_mf" model="ir.ui.view">
+        <field name="name">res.config.settings.form.maisfibra</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="MaisFibra" string="MaisFibra" name="maisfibra_crm">
+                    <block title="Integração com o IXC (bridge)">
+                        <setting string="Bridge" help="Ex.: http://ixc-odoo-bridge:8000 (endereço interno no Easypanel). Mesmo token da variável BRIDGE_TOKEN do bridge.">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="mf_bridge_url" class="col-lg-4 o_light_label"/><field name="mf_bridge_url"/></div>
+                                <div class="row"><label for="mf_bridge_token" class="col-lg-4 o_light_label"/><field name="mf_bridge_token" password="True"/></div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
