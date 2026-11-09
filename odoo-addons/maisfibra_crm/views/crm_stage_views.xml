@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='is_won']" position="after">
                 <field name="mf_code"/>
+                <field name="mf_email_template_id"/>
             </xpath>
         </field>
     </record>

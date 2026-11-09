@@ -15,6 +15,14 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="E-mails automáticos (ligar só depois de configurar o SMTP)">
+                        <setting string="Boas-vindas" help="Para contato novo com e-mail. Nunca para contatos vindos do IXC. Template: MaisFibra: Boas-vindas.">
+                            <field name="mf_email_boas_vindas"/>
+                        </setting>
+                        <setting string="Confirmações por estágio" help="Escolha o e-mail no próprio estágio: proposta, contratação, cancelamento.">
+                            <field name="mf_email_estagio"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
