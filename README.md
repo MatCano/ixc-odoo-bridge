@@ -34,8 +34,8 @@ Se o IXC recusar algo, o Odoo **não muda o estágio** e mostra a mensagem do IX
 3. Easypanel > **Ambiente**: configure as variáveis abaixo e faça o deploy.
 4. Odoo > Definições > **MaisFibra**: URL do bridge (interno, ex. `http://ixc-odoo-bridge:8000`)
    e o mesmo `BRIDGE_TOKEN`.
-5. Em cada funil, abra os estágios e confira a **Regra MaisFibra**
-   (o módulo cria 4 estágios globais; se já existirem estágios equivalentes, use a regra neles).
+5. Em cada funil, abra os estágios existentes e marque a **Regra MaisFibra**
+   (o módulo não cria estágios: os funis PF e PJ já têm "Recolher Documentos").
 
 ### Variáveis de ambiente
 | Variável | Exemplo | Obs. |

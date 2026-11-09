@@ -17,7 +17,7 @@ class Condominio(models.Model):
     ixc_cidade_id = fields.Char("ID cidade (IXC)")
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [("ixc_id_uniq", "unique(ixc_id)", "Condomínio já sincronizado.")]
+    _ixc_id_uniq = models.Constraint("unique(ixc_id)", "Condomínio já sincronizado.")
 
 
 class PlanoNegociacao(models.Model):
@@ -31,7 +31,7 @@ class PlanoNegociacao(models.Model):
     descricao = fields.Text("Descrição")
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [("ixc_id_uniq", "unique(ixc_id)", "Plano já sincronizado.")]
+    _ixc_id_uniq = models.Constraint("unique(ixc_id)", "Plano já sincronizado.")
 
 
 class CanalVenda(models.Model):

@@ -1,6 +1,6 @@
 {
     "name": "MaisFibra - WhatsApp",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "summary": "WhatsApp dentro do CRM (Evolution API, trocável para Meta Cloud API)",
     "description": """
 WhatsApp integrado ao Odoo para a MaisFibra:
@@ -15,7 +15,6 @@ WhatsApp integrado ao Odoo para a MaisFibra:
     "depends": ["base", "mail", "crm", "utm"],
     "data": [
         "security/ir.model.access.csv",
-        "data/utm_source.xml",
         "wizard/whatsapp_composer_views.xml",
         "views/whatsapp_message_views.xml",
         "views/crm_lead_views.xml",

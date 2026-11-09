@@ -1,6 +1,6 @@
 {
     "name": "MaisFibra - CRM",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "summary": "Fluxo comercial MaisFibra: endereço de instalação, condomínio, prospect e negociação no IXC",
     "description": """
 - Endereço de instalação (duplicado) em Contato e Lead
@@ -18,7 +18,6 @@
     "depends": ["base", "mail", "crm"],
     "data": [
         "security/ir.model.access.csv",
-        "data/crm_stage_data.xml",
         "views/maisfibra_cadastros_views.xml",
         "views/crm_stage_views.xml",
         "views/crm_lead_views.xml",

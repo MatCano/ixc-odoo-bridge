@@ -28,9 +28,7 @@ class WhatsappMessage(models.Model):
     error_message = fields.Text("Erro")
     user_id = fields.Many2one("res.users", string="Enviada por")
 
-    _sql_constraints = [
-        ("external_id_uniq", "unique(external_id)", "Mensagem já registrada."),
-    ]
+    _external_id_uniq = models.Constraint("unique(external_id)", "Mensagem já registrada.")
 
     # ------------------------------------------------------------------
     # Chatter
@@ -80,7 +78,9 @@ class WhatsappMessage(models.Model):
                 return lead
         ICP = self.env["ir.config_parameter"].sudo()
         team_id = int(ICP.get_param("maisfibra_whatsapp.default_team_id") or 0)
-        source = self.env.ref("maisfibra_whatsapp.utm_source_whatsapp", raise_if_not_found=False)
+        # reaproveita a origem "WhatsApp" que já existe no Odoo da MaisFibra
+        Source = self.env["utm.source"].sudo()
+        source = Source.search([("name", "=ilike", "whatsapp")], limit=1) or Source.create({"name": "WhatsApp"})
         name = (partner.name if partner else "") or push_name or number
         vals = {
             "name": f"[WhatsApp] {name}",

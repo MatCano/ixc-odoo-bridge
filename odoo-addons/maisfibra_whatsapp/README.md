@@ -1,4 +1,4 @@
-# maisfibra_whatsapp — WhatsApp dentro do Odoo (Odoo 18)
+# maisfibra_whatsapp — WhatsApp dentro do Odoo (Odoo 19)
 
 Envia e recebe WhatsApp direto do CRM. Provedor atual: **Evolution API**; a camada
 `maisfibra.whatsapp.provider` permite trocar para a **Meta Cloud API** sem mexer no resto.
