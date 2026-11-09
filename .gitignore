@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+data/
+.ixc_sync_state.json
