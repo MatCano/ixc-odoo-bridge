@@ -163,7 +163,7 @@ def health_check():
 # ======================================================================
 scheduler = BackgroundScheduler(timezone=str(config.TZ_BRASIL))
 _agora = datetime.now(config.TZ_BRASIL)
-for job in (sync.sync_leads, sync.sync_clientes, sync.sync_status):
+for job in (sync.sync_leads, sync.sync_clientes, sync.sync_status, sync.sync_status_negociacoes):
     scheduler.add_job(job, "interval", minutes=config.POLL_INTERVAL_MINUTES,
                       max_instances=1, coalesce=True, next_run_time=_agora)
 for job in (sync.sync_condominios, sync.sync_planos):

@@ -359,6 +359,53 @@ def sync_status():
                       data_only=False, lookback=config.DELTA_LOOKBACK_HOURS, reprocessar=True)
 
 
+def processar_status_negociacao(neg):
+    """Negociação alterada no IXC (validado 09/11: ganho/perda ficam em data_vencemos/data_perdemos
+    da negociação). Move o lead vinculado no Odoo."""
+    if not config.MF_CAMPOS:
+        return True
+    try:
+        if not _vazio(neg.get("data_vencemos")):
+            codigo = "aguardando_assinatura"
+        elif not _vazio(neg.get("data_perdemos")):
+            codigo = "perdemos"
+        else:
+            return True
+        odoo = conexao()
+        leads = odoo.search("crm.lead", [["mf_ixc_negociacao_id", "=", str(neg.get("id"))]], limit=1)
+        if not leads and not _vazio(neg.get("id_cliente")):
+            leads = odoo.search("crm.lead", [["mf_ixc_cliente_id", "=", str(neg.get("id_cliente"))]], limit=1)
+        if not leads:
+            return True
+        lead = odoo.read("crm.lead", leads, ["stage_id", "team_id", "mf_ixc_negociacao_id"])[0]
+        team_id = lead["team_id"][0] if lead.get("team_id") else None
+        stage_id = odoo.stage_por_codigo(codigo, team_id)
+        vals = {}
+        if not lead.get("mf_ixc_negociacao_id"):
+            vals["mf_ixc_negociacao_id"] = str(neg.get("id"))
+        if stage_id and (not lead.get("stage_id") or lead["stage_id"][0] != stage_id):
+            vals["stage_id"] = stage_id
+        if vals:
+            odoo.write("crm.lead", leads, vals)
+        if "stage_id" in vals:
+            odoo.call("crm.lead", "message_post", [leads], {
+                "body": f"IXC: negociação {neg.get('id')} {'GANHA' if codigo != 'perdemos' else 'PERDIDA'} — lead movido.",
+                "subtype_xmlid": "mail.mt_note",
+            })
+            logger.info(f"Lead {leads[0]} -> {codigo} (negociação IXC {neg.get('id')})")
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao processar negociação {neg.get('id')}: {e}")
+        resetar_conexao()
+        return False
+
+
+def sync_status_negociacoes():
+    sincronizar_fonte(config.IXC_TB_NEGOCIACAO, "ultima_atualizacao", "negociacoes",
+                      processar_status_negociacao, data_only=False,
+                      lookback=config.DELTA_LOOKBACK_HOURS, reprocessar=True)
+
+
 # ======================================================================
 # Cadastros: condomínios e planos
 # ======================================================================
@@ -378,7 +425,7 @@ def sync_condominios():
     n = 0
     try:
         for r in ixc.listar_tudo(config.IXC_TB_CONDOMINIO):
-            nome = r.get("condominio") or r.get("nome") or r.get("descricao")  # VALIDAR
+            nome = r.get("condominio") or r.get("nome")  # validado: campo "condominio"
             if not nome:
                 continue
             _upsert_por_ixc_id("maisfibra.condominio", str(r["id"]), {
@@ -387,8 +434,8 @@ def sync_condominios():
                 "numero": r.get("numero") or "",
                 "bairro": r.get("bairro") or "",
                 "cep": r.get("cep") or "",
-                "cidade": ixc.nome_cidade(r.get("cidade")),
-                "ixc_cidade_id": str(r.get("cidade") or ""),
+                "cidade": ixc.nome_cidade(r.get("id_cidade") or r.get("cidade")),
+                "ixc_cidade_id": str(r.get("id_cidade") or r.get("cidade") or ""),
             })
             n += 1
         logger.info(f"Condomínios sincronizados: {n}")

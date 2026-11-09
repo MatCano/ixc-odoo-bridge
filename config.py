@@ -37,27 +37,26 @@ IXC_TB_CONTATO = os.getenv("IXC_TB_CONTATO", "contato")          # confirmado (j
 IXC_TB_CIDADE = os.getenv("IXC_TB_CIDADE", "cidade")             # confirmado
 IXC_TB_CONTRATO = os.getenv("IXC_TB_CONTRATO", "cliente_contrato")  # confirmado
 IXC_TB_ARECEBER = os.getenv("IXC_TB_ARECEBER", "fn_areceber")       # confirmado
-IXC_TB_CONDOMINIO = os.getenv("IXC_TB_CONDOMINIO", "condominio")           # VALIDAR
-IXC_TB_NEGOCIACAO = os.getenv("IXC_TB_NEGOCIACAO", "crm_negociacoes")      # VALIDAR
+IXC_TB_CONDOMINIO = os.getenv("IXC_TB_CONDOMINIO", "cliente_condominio")   # validado 09/11
+IXC_TB_NEGOCIACAO = os.getenv("IXC_TB_NEGOCIACAO", "crm_negociacoes")      # validado 09/11
 IXC_TB_PLANO = os.getenv("IXC_TB_PLANO", "crm_planos_negociacao")          # VALIDAR
 
 # Campos fixos exigidos pelo IXC ao inserir cliente/prospect (filial, tipo de cliente etc.).
 # VALIDAR: copie os valores de um prospect já cadastrado na MaisFibra.
 IXC_CLIENTE_DEFAULTS = _json_env("IXC_CLIENTE_DEFAULTS", {
+    # validado 09/11 nos 50 prospects mais recentes da MaisFibra
     "filial_id": "1",
-    "id_tipo_cliente": "1",
     "tipo_assinante": "3",
-    "tipo_cliente_scm": "14",
-    "cond_pagamento": "1",
+    "tipo_cliente_scm": "01",
+    "cond_pagamento": "0",
     "tipo_localidade": "U",
     "contribuinte_icms": "N",
-    "participa_cobranca": "S",
 })
-# O que faz um cliente ser "prospect" no IXC. VALIDAR o código de status_prospeccao.
+# O que faz um cliente ser "prospect" no IXC (validado 09/11: P em 42 de 50; ativo sempre S).
 IXC_PROSPECT_FIELDS = _json_env("IXC_PROSPECT_FIELDS", {
     "crm": "S",
     "status_prospeccao": "P",
-    "ativo": "N",
+    "ativo": "S",
 })
 # Campos extras fixos da negociação (ex.: id do funil/etapa inicial no IXC). VALIDAR.
 IXC_NEGOCIACAO_DEFAULTS = _json_env("IXC_NEGOCIACAO_DEFAULTS", {})
