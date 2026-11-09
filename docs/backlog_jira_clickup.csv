@@ -26,4 +26,4 @@ Summary,Description,Issue Type,Priority,Labels,Sprint,Due Date,Status
 "Mapear indicado por, concorrente e vendedor para IDs do IXC","Hoje vão em obs; usar id_concorrente, indicado_por, id_vendedor.",Task,Low,frente1;ixc,Sprint 2,2026-11-20,To Do
 "Remover campos legados x_*","x_ID_IXC, x_id_IXC, x_status_ixc, x_viabilidade, x_codigo_cliente_ixc (vazios).",Task,Low,frente1;limpeza,Sprint 3,2026-11-25,To Do
 "Entrega formal e aceite","Relatório de testes, documentos assinados, demonstração ao cliente.",Task,Highest,entrega,Sprint 3,2026-11-30,To Do
-"Verificar módulos OCA para Odoo 19","Checar branch 19.0 de account_reconcile_oca, account_financial_report, mis_builder, helpdesk_mgmt e l10n-brazil; estimar instalação ou desenvolvimento.",Task,High,frente3;community,Sprint 1,2026-11-13,To Do
+"Incorporar módulos OCA ao Odoo (após revisão)","Verificação feita em 09/11 (HANDOFF §7): conciliação, extrato, DRE/Balanço, mis_builder e helpdesk têm 19.0. Revisar o código, adicionar ao Dockerfile pelos commits listados, testar em homologação e instalar.",Task,High,frente3;community,Sprint 1,2026-11-13,To Do

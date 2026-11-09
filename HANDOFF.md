@@ -250,8 +250,23 @@ Base pronta no módulo `maisfibra_financeiro` (falta instalar) — só o que **n
      a DRE gerencial do módulo próprio cobre o uso interno.
    - Fiscal BR: OCA `l10n-brazil` (avaliar com o contador).
    - Chatbot com tickets: atividade no CRM (pronto) ou OCA `helpdesk_mgmt` (OCA/helpdesk).
-   - **Antes de prometer qualquer item OCA, confirmar se já existe branch `19.0`** no repositório da OCA;
-     se não existir, o caminho é desenvolvimento próprio ou aguardar a migração.
+   - **Verificado em 09/11/2026 — módulos OCA com versão 19.0 instalável:**
+
+     | Necessidade | Repositório OCA | Módulos | Commit verificado |
+     |---|---|---|---|
+     | Conciliação bancária | account-reconcile | `account_reconcile_oca`, `account_statement_base` | `81321938` |
+     | Importar extrato (CSV/XLSX, CAMT) | bank-statement-import | `account_statement_import_base`, `_file`, `_sheet_file`, `_camt` | `f22941f8` |
+     | DRE / Balanço / Razão | account-financial-reporting | `account_financial_report`, `account_tax_balance` | `f48b4ea7` |
+     | Relatórios gerenciais e orçamento | mis-builder | `mis_builder`, `mis_builder_budget` | `cd493837` |
+     | Excel / períodos (dependências) | reporting-engine, server-ux | `report_xlsx`, `date_range` | `2e324021`, `af19073d` |
+     | Tickets (helpdesk/chatbot) | helpdesk | `helpdesk_mgmt` | `9a8baa76` |
+     | Fiscal BR | l10n-brazil | `l10n_br_fiscal`, `l10n_br_account` | existe, mas depende de `uom_alias` (outro repo) — avaliar com o contador |
+     | Importar OFX | bank-statement-import | `account_statement_import_ofx` | ❌ ainda não migrado para 19.0 |
+
+     **Como incorporar (decisão da equipe, após revisar o código):** no `odoo-addons/Dockerfile`, baixar cada
+     repositório pelo commit acima (`ADD https://github.com/OCA/<repo>/archive/<sha>.tar.gz`), copiar só os
+     módulos da tabela para `/mnt/oca-addons` e incluir esse caminho no `--addons-path`. Testar primeiro em
+     homologação; nada é instalado automaticamente — depois é Apps > instalar.
 2. **Duplicidade com o IXC.** O IXC já é o financeiro do provedor e já tem régua de cobrança
    (campos `regua_cobranca_wpp`/`regua_cobranca_notificacao`). Decidir se o Odoo deve **refazer**
    cobrança/contas a receber ou apenas **mostrar** o que está no IXC (o que já foi implementado).
