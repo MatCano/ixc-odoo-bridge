@@ -6,6 +6,27 @@
 
 ---
 
+## 0. Situação em 09/11/2026 (madrugada) — comece por aqui
+
+| Item | Situação |
+|---|---|
+| Backup diário (banco + arquivos) | ✅ Configurado e executado (disco local) |
+| Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
+| Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
+| `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
+| `maisfibra_auditoria` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar |
+| Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
+| Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
+| Validação do IXC e testes | ⏳ **Você**: HANDOFF §6 e `docs/PLANO_DE_TESTES.md` |
+
+Documentos: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) · [`docs/PLANO_DE_TESTES.md`](docs/PLANO_DE_TESTES.md) ·
+[`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
+
+⚠️ Dado importante: dos ~3.000 leads, só 2 estão como **ganhos** no Odoo (vendas fecham no IXC). As taxas de
+conversão do painel só ficam corretas depois que o bridge novo passar a trazer vencemos/perdemos.
+
+---
+
 ## 1. Visão geral
 
 ```
@@ -57,25 +78,6 @@
 - Financeiro: plano de contas BR padrão carregado, diários padrão, 8 faturas manuais, 0 centros de custo.
 
 ---
-
-## 0. Situação em 09/11/2026 (madrugada) — comece por aqui
-
-| Item | Situação |
-|---|---|
-| Backup diário (banco + arquivos) | ✅ Configurado e executado (disco local) |
-| Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
-| Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
-| `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
-| `maisfibra_auditoria` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar |
-| Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
-| Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
-| Validação do IXC e testes | ⏳ **Você**: HANDOFF §6 e `docs/PLANO_DE_TESTES.md` |
-
-Documentos: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) · [`docs/PLANO_DE_TESTES.md`](docs/PLANO_DE_TESTES.md) ·
-[`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
-
-⚠️ Dado importante: dos ~3.000 leads, só 2 estão como **ganhos** no Odoo (vendas fecham no IXC). As taxas de
-conversão do painel só ficam corretas depois que o bridge novo passar a trazer vencemos/perdemos.
 
 ## 3. O que está pronto
 
