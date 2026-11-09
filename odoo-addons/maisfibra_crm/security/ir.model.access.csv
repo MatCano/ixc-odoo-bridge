@@ -5,3 +5,6 @@ access_mf_plano_user,mf.plano.user,model_maisfibra_plano,base.group_user,1,0,0,0
 access_mf_plano_mgr,mf.plano.mgr,model_maisfibra_plano,sales_team.group_sale_manager,1,1,1,1
 access_mf_canal_user,mf.canal.user,model_maisfibra_canal_venda,base.group_user,1,0,0,0
 access_mf_canal_mgr,mf.canal.mgr,model_maisfibra_canal_venda,sales_team.group_sale_manager,1,1,1,1
+access_mf_ixc_consulta,mf.ixc.consulta,model_maisfibra_ixc_consulta,base.group_user,1,1,1,1
+access_mf_ixc_consulta_contrato,mf.ixc.consulta.contrato,model_maisfibra_ixc_consulta_contrato,base.group_user,1,1,1,1
+access_mf_ixc_consulta_fatura,mf.ixc.consulta.fatura,model_maisfibra_ixc_consulta_fatura,base.group_user,1,1,1,1

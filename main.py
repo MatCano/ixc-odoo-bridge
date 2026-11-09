@@ -6,6 +6,7 @@ Rotas:
   POST /webhook/lead-externo   (OPA/Chatwoot/landing; header token = WEBHOOK_SECRET)
   POST /odoo/prospect          (Odoo -> IXC; header token = BRIDGE_TOKEN)
   POST /odoo/negociacao        (Odoo -> IXC; header token = BRIDGE_TOKEN)
+  POST /odoo/cliente-ixc       (Odoo -> IXC, leitura: contratos e faturas; header token = BRIDGE_TOKEN)
   POST /odoo/consulta-credito  (Odoo -> IXC; header token = BRIDGE_TOKEN)
 
 Jobs:
@@ -22,6 +23,7 @@ from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 import config
+import consulta_ixc
 import ixc
 import ixc_para_odoo as sync
 import odoo_para_ixc as fluxo
@@ -100,6 +102,24 @@ def odoo_negociacao(payload: OdooLead, token: str = Header(None)):
     _auth(token, config.BRIDGE_TOKEN)
     neg_id = _executar(fluxo.criar_negociacao, payload, "negociacao")
     return {"ixc_negociacao_id": neg_id}
+
+
+class ConsultaCliente(BaseModel):
+    ixc_cliente_id: str = ""
+    cpf_cnpj: str = ""
+
+
+@app.post("/odoo/cliente-ixc")
+def odoo_cliente_ixc(payload: ConsultaCliente, token: str = Header(None)):
+    """Contratos, status do serviço e faturas do cliente (somente leitura, tempo real)."""
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        return consulta_ixc.consultar(payload.ixc_cliente_id, payload.cpf_cnpj)
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("consulta cliente IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
 
 
 @app.post("/odoo/consulta-credito")

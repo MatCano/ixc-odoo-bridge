@@ -18,6 +18,7 @@
     "depends": ["base", "mail", "crm"],
     "data": [
         "security/ir.model.access.csv",
+        "views/ixc_consulta_views.xml",
         "views/maisfibra_cadastros_views.xml",
         "views/crm_stage_views.xml",
         "views/crm_lead_views.xml",

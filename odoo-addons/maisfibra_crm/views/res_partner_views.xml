@@ -5,6 +5,14 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_mf_consultar_ixc" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Consultar IXC</span>
+                        <field name="mf_ixc_status_servico" class="o_stat_text" invisible="not mf_ixc_status_servico"/>
+                    </div>
+                </button>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Instalação" name="mf_instalacao">
                     <group>
@@ -23,6 +31,14 @@
                             <field name="mf_ixc_contato_id" readonly="1"/>
                             <field name="mf_ixc_cliente_id" readonly="1"/>
                         </group>
+                    </group>
+                    <group string="Financeiro e serviço (IXC)">
+                        <field name="mf_ixc_status_servico"/>
+                        <field name="mf_ixc_faturas_abertas"/>
+                        <field name="mf_ixc_faturas_vencidas" decoration-danger="mf_ixc_faturas_vencidas &gt; 0"/>
+                        <field name="mf_ixc_valor_aberto"/>
+                        <field name="mf_ixc_valor_vencido" decoration-danger="mf_ixc_valor_vencido &gt; 0"/>
+                        <field name="mf_ixc_consultado_em"/>
                     </group>
                 </page>
             </xpath>

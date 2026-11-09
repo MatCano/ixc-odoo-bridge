@@ -31,7 +31,7 @@ def _digits(v):
 
 class CrmLead(models.Model):
     _name = "crm.lead"
-    _inherit = ["crm.lead", "maisfibra.endereco.mixin"]
+    _inherit = ["crm.lead", "maisfibra.endereco.mixin", "maisfibra.ixc.resumo.mixin"]
 
     # --- Vínculos com o IXC (substituem os marcadores em texto da descrição) ---
     mf_ixc_contato_id = fields.Char("ID Lead (IXC)", index=True, copy=False, tracking=True)
@@ -155,6 +155,11 @@ class CrmLead(models.Model):
         self.with_context(mf_from_bridge=True).sudo().write({"mf_ixc_negociacao_id": neg_id})
         self.message_post(body=_("✅ Negociação criada no IXC (ID %s).", neg_id),
                           subtype_xmlid="mail.mt_note")
+
+    def _mf_ixc_chaves(self):
+        self.ensure_one()
+        return (self.mf_ixc_cliente_id or self.partner_id.mf_ixc_cliente_id,
+                _digits(self.mf_cpf_cnpj or self.partner_id.vat))
 
     def action_mf_consultar_credito(self):
         self.ensure_one()
