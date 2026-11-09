@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mf_fluxo_caixa,mf.fluxo.caixa,model_maisfibra_fluxo_caixa,account.group_account_invoice,1,0,0,0
+access_mf_dre,mf.dre,model_maisfibra_dre,account.group_account_invoice,1,0,0,0

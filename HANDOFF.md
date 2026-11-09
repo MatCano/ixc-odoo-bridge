@@ -14,7 +14,7 @@
 | Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
 | Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
 | `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
-| `maisfibra_auditoria` e `maisfibra_csat` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar (Apps > Atualizar lista) |
+| `maisfibra_auditoria`, `maisfibra_csat` e `maisfibra_financeiro` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar (Apps > Atualizar lista) |
 | Alertas da integração | 🟡 No bridge novo: falhas aparecem no canal **Integração IXC** do Odoo (Discuss) — entre no canal para receber |
 | Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
 | Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
@@ -183,7 +183,19 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | Testes de entrega | ❌ | |
 
 ### Frente 3 — Financeiro
-Praticamente **não iniciada** (plano de contas padrão carregado; 8 faturas manuais).
+Base pronta no módulo `maisfibra_financeiro` (falta instalar) — só o que **não duplica o IXC**:
+
+| Item | Status | Nota |
+|---|---|---|
+| Plano de contas | ⚠️ | Plano BR padrão carregado; adaptar com a contabilidade da Mais Fibra (documento a assinar) |
+| Centros de custo por CNPJ | 🟡 | Plano analítico "Centros de Custo" criado; ativar *Contabilidade Analítica* e criar um centro por CNPJ |
+| Configuração fiscal (ICMS, ISS, PIS, COFINS, IR) | ❌ | Exige contador; no Community o l10n_br é limitado (avaliar OCA `l10n-brazil`) |
+| Contas a pagar + aprovação multinível | 🟡 | Gerente ≤ R$5 mil, Diretor ≤ R$20 mil, CFO acima (configurável); bloqueia lançamento sem aprovação; desligado por padrão |
+| Agendamento de pagamentos | 🟡 | Agenda (calendário) de vencimentos, próximos 7 dias, atrasados |
+| Relatórios: fluxo de caixa, DRE | 🟡 | Fluxo de caixa previsto e DRE gerencial (pivot, exporta Excel). Balanço patrimonial oficial: Enterprise ou OCA |
+| Contas a receber + fatura automática ao ganhar | ⏸️ | **Decisão**: duplicaria o IXC |
+| Workflow de cobrança | ⏸️ | **Decisão**: o IXC já tem régua de cobrança |
+| Conciliação bancária automática | ❌ | Community 19 não tem; OCA `account_reconcile_oca` ou Enterprise |
 
 ---
 

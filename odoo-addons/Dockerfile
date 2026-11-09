@@ -12,6 +12,7 @@ COPY maisfibra_crm /mnt/maisfibra-addons/maisfibra_crm
 COPY maisfibra_whatsapp /mnt/maisfibra-addons/maisfibra_whatsapp
 COPY maisfibra_auditoria /mnt/maisfibra-addons/maisfibra_auditoria
 COPY maisfibra_csat /mnt/maisfibra-addons/maisfibra_csat
+COPY maisfibra_financeiro /mnt/maisfibra-addons/maisfibra_financeiro
 RUN chown -R odoo:odoo /mnt/maisfibra-addons
 USER odoo
 

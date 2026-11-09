@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fluxo de caixa previsto -->
+    <record id="fluxo_caixa_view_pivot" model="ir.ui.view">
+        <field name="name">maisfibra.fluxo.caixa.pivot</field>
+        <field name="model">maisfibra.fluxo.caixa</field>
+        <field name="arch" type="xml">
+            <pivot string="Fluxo de caixa previsto">
+                <field name="vencimento" interval="month" type="col"/>
+                <field name="tipo" type="row"/>
+                <field name="valor" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="fluxo_caixa_view_graph" model="ir.ui.view">
+        <field name="name">maisfibra.fluxo.caixa.graph</field>
+        <field name="model">maisfibra.fluxo.caixa</field>
+        <field name="arch" type="xml">
+            <graph string="Fluxo de caixa previsto" type="bar">
+                <field name="vencimento" interval="month"/>
+                <field name="tipo"/>
+                <field name="valor" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="fluxo_caixa_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.fluxo.caixa.list</field>
+        <field name="model">maisfibra.fluxo.caixa</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-danger="atrasado">
+                <field name="vencimento"/>
+                <field name="tipo"/>
+                <field name="partner_id"/>
+                <field name="move_id"/>
+                <field name="valor" sum="Saldo"/>
+                <field name="atrasado" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="fluxo_caixa_view_search" model="ir.ui.view">
+        <field name="name">maisfibra.fluxo.caixa.search</field>
+        <field name="model">maisfibra.fluxo.caixa</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <filter name="receber" string="A receber" domain="[('tipo', '=', 'receber')]"/>
+                <filter name="pagar" string="A pagar" domain="[('tipo', '=', 'pagar')]"/>
+                <separator/>
+                <filter name="atrasados" string="Atrasados" domain="[('atrasado', '=', True)]"/>
+                <filter name="futuros" string="A vencer" domain="[('atrasado', '=', False)]"/>
+                <filter name="f_venc" string="Vencimento" date="vencimento"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_fluxo_caixa" model="ir.actions.act_window">
+        <field name="name">Fluxo de Caixa Previsto</field>
+        <field name="res_model">maisfibra.fluxo.caixa</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="help" type="html"><p>Saldo a receber e a pagar no Odoo por mês de vencimento. Recebíveis do provedor ficam no IXC.</p></field>
+    </record>
+
+    <!-- DRE gerencial -->
+    <record id="dre_view_pivot" model="ir.ui.view">
+        <field name="name">maisfibra.dre.pivot</field>
+        <field name="model">maisfibra.dre</field>
+        <field name="arch" type="xml">
+            <pivot string="DRE gerencial">
+                <field name="categoria" type="row"/>
+                <field name="data" interval="month" type="col"/>
+                <field name="valor" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="dre_view_search" model="ir.ui.view">
+        <field name="name">maisfibra.dre.search</field>
+        <field name="model">maisfibra.dre</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="account_id"/>
+                <filter name="f_data" string="Data" date="data"/>
+                <filter name="g_conta" string="Conta" context="{'group_by': 'account_id'}"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_dre" model="ir.actions.act_window">
+        <field name="name">DRE Gerencial</field>
+        <field name="res_model">maisfibra.dre</field>
+        <field name="view_mode">pivot</field>
+        <field name="help" type="html"><p>Resultado por mês: receitas, custos, despesas e depreciação. A última linha (total) é o resultado. Exportável para Excel pelo botão de download do pivot.</p></field>
+    </record>
+
+    <menuitem id="menu_mf_relatorios_fin" name="MaisFibra" parent="account.menu_finance_reports" sequence="1"/>
+    <menuitem id="menu_fluxo_caixa" name="Fluxo de Caixa Previsto" parent="menu_mf_relatorios_fin" action="action_fluxo_caixa" sequence="10"/>
+    <menuitem id="menu_dre" name="DRE Gerencial" parent="menu_mf_relatorios_fin" action="action_dre" sequence="20"/>
+</odoo>
