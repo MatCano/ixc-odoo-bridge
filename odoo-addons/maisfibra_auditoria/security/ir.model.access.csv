@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mf_audit_log_admin,mf.audit.log.admin,model_maisfibra_audit_log,base.group_system,1,0,0,0
+access_mf_audit_log_mgr,mf.audit.log.mgr,model_maisfibra_audit_log,sales_team.group_sale_manager,1,0,0,0
+access_mf_audit_linha_admin,mf.audit.linha.admin,model_maisfibra_audit_log_linha,base.group_system,1,0,0,0
+access_mf_audit_linha_mgr,mf.audit.linha.mgr,model_maisfibra_audit_log_linha,sales_team.group_sale_manager,1,0,0,0

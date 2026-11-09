@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="audit_log_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.audit.log.list</field>
+        <field name="model">maisfibra.audit.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="data"/>
+                <field name="user_id"/>
+                <field name="operacao" decoration-danger="operacao == 'unlink'" decoration-success="operacao == 'create'"/>
+                <field name="model_desc"/>
+                <field name="res_name"/>
+                <field name="res_id" optional="hide"/>
+                <field name="origem" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="audit_log_view_form" model="ir.ui.view">
+        <field name="name">maisfibra.audit.log.form</field>
+        <field name="model">maisfibra.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_abrir_registro" type="object" string="Abrir registro" icon="fa-external-link"
+                            invisible="operacao == 'unlink'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="data"/>
+                            <field name="user_id"/>
+                            <field name="operacao"/>
+                        </group>
+                        <group>
+                            <field name="model_desc"/>
+                            <field name="res_name"/>
+                            <field name="res_id"/>
+                            <field name="origem"/>
+                        </group>
+                    </group>
+                    <field name="linha_ids">
+                        <list>
+                            <field name="campo_desc"/>
+                            <field name="antes"/>
+                            <field name="depois"/>
+                            <field name="campo" optional="hide"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="audit_log_view_search" model="ir.ui.view">
+        <field name="name">maisfibra.audit.log.search</field>
+        <field name="model">maisfibra.audit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="res_name"/>
+                <field name="user_id"/>
+                <field name="model_desc"/>
+                <field name="linha_ids" string="Campo" filter_domain="[('linha_ids.campo_desc', 'ilike', self)]"/>
+                <filter name="f_create" string="Criações" domain="[('operacao', '=', 'create')]"/>
+                <filter name="f_write" string="Alterações" domain="[('operacao', '=', 'write')]"/>
+                <filter name="f_unlink" string="Exclusões" domain="[('operacao', '=', 'unlink')]"/>
+                <separator/>
+                <filter name="f_humano" string="Feitas por pessoas" domain="[('origem', '=', False)]"/>
+                <filter name="f_bridge" string="Feitas pelo sincronismo IXC" domain="[('origem', '=', 'bridge')]"/>
+                <separator/>
+                <filter name="f_data" string="Data" date="data"/>
+                <group>
+                    <filter name="g_user" string="Usuário" context="{'group_by': 'user_id'}"/>
+                    <filter name="g_model" string="Tipo de registro" context="{'group_by': 'model_desc'}"/>
+                    <filter name="g_dia" string="Dia" context="{'group_by': 'data:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_audit_log" model="ir.actions.act_window">
+        <field name="name">Auditoria</field>
+        <field name="res_model">maisfibra.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_f_humano': 1}</field>
+        <field name="help" type="html"><p>Quem criou, alterou ou excluiu leads, contatos, faturas e estágios — com o valor antes e depois.</p></field>
+    </record>
+
+    <menuitem id="menu_audit_root" name="Auditoria" parent="base.menu_administration" sequence="90"
+              groups="base.group_system,sales_team.group_sale_manager"/>
+    <menuitem id="menu_audit_log" name="Registro de alterações" parent="menu_audit_root" action="action_audit_log" sequence="10"/>
+</odoo>
