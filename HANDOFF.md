@@ -6,26 +6,40 @@
 
 ---
 
-## 0. Situação em 09/11/2026 (madrugada) — comece por aqui
+## 0. Situação em 09/11/2026 (01h30) — comece por aqui
 
+### Já está em produção
 | Item | Situação |
 |---|---|
-| Backup diário (banco + arquivos) | ✅ Configurado e executado (disco local) |
-| Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
+| Backup diário (banco + arquivos), 2h | ✅ Rodando (disco local) — falta storage externo |
 | Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
-| `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
-| `maisfibra_auditoria`, `maisfibra_csat` e `maisfibra_financeiro` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar (Apps > Atualizar lista) |
-| Alertas da integração | 🟡 No bridge novo: falhas aparecem no canal **Integração IXC** do Odoo (Discuss) — entre no canal para receber |
-| Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
-| Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
-| Validação do IXC | ✅ Feita (leitura) — ver §6; restam 4 conferências rápidas na tela |
-| Testes | ⏳ **Você**: `docs/PLANO_DE_TESTES.md` |
+| Gerenciador de bancos público | ✅ Desligado (`--no-database-list`) |
+| Módulos `maisfibra_crm`, `_whatsapp`, `_auditoria`, `_csat`, `_financeiro` | ✅ Instalados e conferidos. **Nenhuma regra de estágio marcada** e **automações desligadas** — nada é enviado ao IXC, WhatsApp ou e-mail ainda |
+| Volume `/app/data` no bridge | ✅ Criado |
+| Validação do IXC (leitura) | ✅ Feita — §6 |
+
+### Seu roteiro (nesta ordem)
+| # | Passo | Tempo | Referência |
+|---|---|---|---|
+| 1 | Odoo > Definições > MaisFibra > **Migrar agora** (se ainda não rodou) | 1 min | §8 |
+| 2 | Conferir na tela do IXC: plano de negociação 33, funil 7, IDs dos canais, permissão de escrita da API | 15 min | §6 |
+| 3 | **Bridge novo**: variáveis no Easypanel (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) → merge do **PR #2** → URL/token em Definições > MaisFibra | 15 min | PR #2 |
+| 4 | Testar **Consultar IXC** num cliente; ver o canal "Integração IXC" | 10 min | `docs/PLANO_DE_TESTES.md` S8 |
+| 5 | Marcar a **Regra MaisFibra** nos estágios de PF e PJ; teste ponta a ponta com 1 lead real | 1 h | §4, PLANO S1–S7 |
+| 6 | Segurança: restringir painel do Easypanel pelo IP, regerar tokens de deploy, repo privado (com chave SSH), 2FA | 1h30 | relatório de segurança (arquivo à parte) |
+| 7 | Pedir conta de SMTP e subir Evolution (WhatsApp); levar as decisões do §7 | — | §7 |
+| 8 | Executar o plano de testes e montar o relatório | sem. 2–3 | `docs/PLANO_DE_TESTES.md` |
+
+Backlog completo com prazos até 30/11: `docs/backlog_jira_clickup.csv` (importar no Jira/ClickUp).
+Guia para a equipe: `docs/GUIA_DO_USUARIO.md`.
 
 Documentos: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) · [`docs/PLANO_DE_TESTES.md`](docs/PLANO_DE_TESTES.md) ·
-[`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
+[`docs/OPERACAO.md`](docs/OPERACAO.md) · [`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
 
-⚠️ Dado importante: dos ~3.000 leads, só 2 estão como **ganhos** no Odoo (vendas fecham no IXC). As taxas de
-conversão do painel só ficam corretas depois que o bridge novo passar a trazer vencemos/perdemos.
+⚠️ Dado importante: dos ~3.000 leads, só 2 estão como **ganhos** no Odoo (as vendas fecham no IXC). As taxas de
+conversão do painel só ficam corretas depois que o bridge novo passar a ler o status das negociações (V/D).
+
+**Progresso estimado:** ~75% desenvolvido · ~40% em produção · prazo-alvo 30/11 (ver §7 sobre o que cabe).
 
 ---
 
