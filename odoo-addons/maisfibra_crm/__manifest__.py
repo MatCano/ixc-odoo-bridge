@@ -19,6 +19,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/mail_templates.xml",
+        "data/ir_cron.xml",
         "views/ixc_consulta_views.xml",
         "views/maisfibra_cadastros_views.xml",
         "views/crm_stage_views.xml",

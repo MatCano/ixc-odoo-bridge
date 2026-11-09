@@ -22,7 +22,8 @@
 | # | Passo | Tempo | Referência |
 |---|---|---|---|
 | 1 | Odoo > Definições > MaisFibra > **Migrar agora** (se ainda não rodou) | 1 min | §8 |
-| 1b | Easypanel > odoo > **Implantar** e, no Odoo, Apps > **Atualizar** `maisfibra_crm` e `maisfibra_whatsapp` (correções da revisão de 09/11: lead duplicado por mensagem de número desconhecido) | 5 min | commit "Revisão" |
+| 1b | Easypanel > odoo > **Implantar** e, no Odoo, Apps > **Atualizar** `maisfibra_crm` e `maisfibra_whatsapp` (correção do lead duplicado no WhatsApp, Meta Cloud API, vendedor/funil no IXC, retenção LGPD) | 5 min | commits de 09/11 |
+| 1c | Preencher **ID do vendedor no IXC** em cada usuário e **ID do funil no IXC** em cada funil (CRM > Configuração > Equipes) | 10 min | §6 |
 | 2 | Conferir na tela do IXC: plano de negociação 33, funil 7, IDs dos canais, permissão de escrita da API | 15 min | §6 |
 | 3 | **Bridge novo**: variáveis no Easypanel (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) → merge do **PR #2** → URL/token em Definições > MaisFibra | 15 min | PR #2 |
 | 4 | Testar **Consultar IXC** num cliente; ver o canal "Integração IXC" | 10 min | `docs/PLANO_DE_TESTES.md` S8 |
@@ -197,6 +198,7 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | E-mails de cobrança | ❌ | Decisão pendente: o IXC já tem régua de cobrança (§7) |
 | Integração WhatsApp | 🟡 | `maisfibra_whatsapp` (Evolution) |
 | Pesquisa de satisfação (CSAT) | 🟡 | `maisfibra_csat`: link personalizado por WhatsApp/e-mail ao entrar no estágio marcado; nota volta ao lead; nota 1-2 gera atividade para o gerente |
+| WhatsApp API oficial (Meta) | 🟡 | Provedor Meta pronto (texto, templates, webhook com assinatura); falta conta Meta Business e templates aprovados |
 | Disparos automáticos por evento | 🟡 | Boas-vindas a lead novo + mensagem por estágio (desligados por padrão) |
 | Chatbot básico + tickets | 🟡 | Menu 1/2/3; "contratar"/"atendente" cria atividade para o vendedor e pausa o bot |
 | Testes de entrega | ❌ | |

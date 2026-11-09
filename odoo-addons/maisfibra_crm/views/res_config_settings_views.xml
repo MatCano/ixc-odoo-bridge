@@ -20,6 +20,19 @@
                             <button name="action_mf_migrar" type="object" string="Migrar agora" class="btn-secondary" icon="fa-exchange"/>
                         </setting>
                     </block>
+                    <block title="LGPD: retenção de leads">
+                        <setting string="Anonimização de leads perdidos" help="Apaga nome, contato, CPF, endereço, histórico e mensagens de leads PERDIDOS sem alteração há N meses. Não mexe em contatos nem no IXC. Use Simular antes de ligar.">
+                            <field name="mf_lgpd_ativo"/>
+                            <div class="content-group">
+                                <div class="row mt8"><label for="mf_lgpd_meses" class="col-lg-4 o_light_label"/><field name="mf_lgpd_meses"/></div>
+                                <div class="mt8">
+                                    <button name="action_mf_lgpd_simular" type="object" string="Simular (só conta)" class="btn-secondary" icon="fa-calculator"/>
+                                    <button name="action_mf_lgpd_executar" type="object" string="Anonimizar agora" class="btn-link text-danger" icon="fa-eraser"
+                                            confirm="Isto apaga de forma irreversível os dados pessoais dos leads perdidos fora do prazo. Continuar?"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="E-mails automáticos (ligar só depois de configurar o SMTP)">
                         <setting string="Boas-vindas" help="Para contato novo com e-mail. Nunca para contatos vindos do IXC. Template: MaisFibra: Boas-vindas.">
                             <field name="mf_email_boas_vindas"/>

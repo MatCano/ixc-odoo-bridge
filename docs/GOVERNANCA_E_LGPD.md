@@ -78,7 +78,7 @@ Regras:
 ### 7. Retenção e descarte
 | Dado | Retenção |
 |---|---|
-| Leads não convertidos | 24 meses após o último contato; depois, anonimizar ou excluir |
+| Leads não convertidos | 24 meses após o último contato; depois, anonimizar (rotina pronta: Definições > MaisFibra > LGPD, com simulação) |
 | Clientes | Durante o contrato + prazos legais (fiscal/contábil: 5 anos; consumidor: 5 anos) |
 | Mensagens de WhatsApp/e-mail | 24 meses |
 | Registros de auditoria | Mínimo 12 meses (sistema mantém 13) |
