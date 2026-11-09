@@ -14,7 +14,8 @@
 | Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
 | Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
 | `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
-| `maisfibra_auditoria` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar |
+| `maisfibra_auditoria` e `maisfibra_csat` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar (Apps > Atualizar lista) |
+| Alertas da integração | 🟡 No bridge novo: falhas aparecem no canal **Integração IXC** do Odoo (Discuss) — entre no canal para receber |
 | Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
 | Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
 | Validação do IXC e testes | ⏳ **Você**: HANDOFF §6 e `docs/PLANO_DE_TESTES.md` |
@@ -161,6 +162,7 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | Funil personalizado | ✅ | PF, PJ, Renovação, Website |
 | Campos customizados + validações | 🟡 | `maisfibra_crm` |
 | Middleware bidirecional (clientes) | 🟡 | Bridge v2 |
+| Alertas automáticos de falha (proposta comercial) | 🟡 | Canal "Integração IXC" no Odoo Discuss |
 | Dados financeiros em tempo real | 🟡 | Botão Consultar IXC |
 | Status de serviços | 🟡 | Idem (contrato + status da internet) |
 | Testes com 100+ clientes + relatório | 🟡 | Roteiro e modelo de relatório em `docs/PLANO_DE_TESTES.md` — falta executar |
@@ -175,6 +177,7 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | E-mails automáticos (boas-vindas, confirmação) | 🟡 | 4 templates + automação por estágio, desligados até existir SMTP |
 | E-mails de cobrança | ❌ | Decisão pendente: o IXC já tem régua de cobrança (§7) |
 | Integração WhatsApp | 🟡 | `maisfibra_whatsapp` (Evolution) |
+| Pesquisa de satisfação (CSAT) | 🟡 | `maisfibra_csat`: link personalizado por WhatsApp/e-mail ao entrar no estágio marcado; nota volta ao lead; nota 1-2 gera atividade para o gerente |
 | Disparos automáticos por evento | 🟡 | Boas-vindas a lead novo + mensagem por estágio (desligados por padrão) |
 | Chatbot básico + tickets | 🟡 | Menu 1/2/3; "contratar"/"atendente" cria atividade para o vendedor e pausa o bot |
 | Testes de entrega | ❌ | |

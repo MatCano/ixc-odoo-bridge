@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="survey_csat" model="survey.survey">
+        <field name="title">Pesquisa de satisfação Mais Fibra</field>
+        <field name="survey_type">survey</field>
+        <field name="access_mode">public</field>
+        <field name="users_login_required" eval="False"/>
+        <field name="questions_layout">one_page</field>
+        <field name="is_attempts_limited" eval="False"/>
+    </record>
+    <record id="survey_csat_q_nota" model="survey.question">
+        <field name="survey_id" ref="survey_csat"/>
+        <field name="sequence">1</field>
+        <field name="title">De 1 a 5, qual a sua satisfação com a Mais Fibra?</field>
+        <field name="question_type">scale</field>
+        <field name="scale_min">1</field>
+        <field name="scale_max">5</field>
+        <field name="scale_min_label">Muito insatisfeito</field>
+        <field name="scale_max_label">Muito satisfeito</field>
+        <field name="constr_mandatory" eval="True"/>
+    </record>
+    <record id="survey_csat_q_comentario" model="survey.question">
+        <field name="survey_id" ref="survey_csat"/>
+        <field name="sequence">2</field>
+        <field name="title">Quer contar o que podemos melhorar? (opcional)</field>
+        <field name="question_type">text_box</field>
+        <field name="constr_mandatory" eval="False"/>
+    </record>
+
+    <record id="mail_tpl_csat" model="mail.template">
+        <field name="name">MaisFibra: Pesquisa de satisfação</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="subject">Como foi sua experiência com a Mais Fibra?</field>
+        <field name="email_to">{{ object.email_from or object.partner_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222;text-align:center">
+    <h2 style="color:#0b5ed7">Olá, <t t-out="ctx.get('mf_csat_nome') or ''"/>!</h2>
+    <p>Sua opinião ajuda a gente a melhorar. São só 10 segundos:</p>
+    <p style="margin:28px 0">
+        <a t-att-href="ctx.get('mf_csat_link')" style="background:#0b5ed7;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">Avaliar a Mais Fibra</a>
+    </p>
+    <p style="color:#666;font-size:12px">Obrigado! Equipe Mais Fibra</p>
+</div>
+        </field>
+    </record>
+</odoo>
