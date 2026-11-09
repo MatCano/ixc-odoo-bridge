@@ -22,12 +22,23 @@
 
 | Peça | Onde | Observação |
 |---|---|---|
-| Odoo **19.0 Community** | Easypanel `maisfibra/odoo` + `odoo-db` | URL: `https://maisfibra-odoo.ys2bw5.easypanel.host/odoo` · banco `maisfibra-crm` |
-| Bridge | Easypanel `maisfibra/ixc-odoo-bridge` | Este repositório (raiz) |
+| Odoo **19.0 Community** | Easypanel `maisfibra/odoo` — imagem `odoo:19.0` | URL: `https://maisfibra-odoo.ys2bw5.easypanel.host/odoo` · banco `maisfibra-crm` · volumes `/var/lib/odoo`, `/etc/odoo`, `/mnt/extra-addons` |
+| PostgreSQL | Easypanel `maisfibra/odoo-db` — imagem `postgres:13` como **app comum** | Volume `/var/lib/postgresql/data/pgdata` |
+| Bridge | Easypanel `maisfibra/ixc-odoo-bridge` — fonte GitHub (deploy a cada commit) | Este repositório (raiz) · **sem volume** |
+| Painel | `https://easypanel.allnnect.com.br` (servidor 147.79.106.154) | |
 | Módulos Odoo | `odoo-addons/` deste repositório | `maisfibra_crm`, `maisfibra_whatsapp` |
 | Evolution API | **ainda não existe** | Subir pelo template do Easypanel |
 
 ⚠️ O Odoo é **19 Community**, não 18 nem Enterprise. Isso importa para o escopo (ver §5).
+
+### 🔴 Riscos de infraestrutura encontrados (09/11/2026)
+1. **Nenhum backup.** O banco roda como app comum (não como serviço Postgres do Easypanel), então não há
+   backup de banco; e não há backup de volume em nenhum serviço. Perda do servidor = perda de tudo.
+   **Primeira coisa a fazer:** backup de volume diário do `odoo-db` e do `odoo` (filestore) no Easypanel,
+   ou `pg_dump` agendado para um storage externo; testar uma restauração.
+2. **Bridge sem volume**: o estado do sync (`.ixc_sync_state.json`) some a cada deploy e força
+   re-varredura. Criar volume em `/app/data` antes do merge.
+3. A URL do gatilho de deploy do bridge contém token — não compartilhar fora da equipe.
 
 ---
 
@@ -84,19 +95,22 @@ estado do sync agora em volume e com limite; vínculo IXC↔Odoo por campos em v
 ## 4. Como implantar (ordem importa)
 
 1. **Validar o IXC** (§6) — ~30 min com acesso à API.
-2. **Módulos no Odoo**: disponibilizar `odoo-addons/` no addons path do serviço `odoo`
-   (volume ou imagem própria), reiniciar, *Apps > Atualizar lista* e instalar `maisfibra_crm`
+2. **Backup antes de tudo** (ver riscos acima) e, se possível, testar a instalação numa cópia do banco.
+3. **Módulos no Odoo**: trocar a fonte do serviço `odoo` no Easypanel de *Imagem Docker `odoo:19.0`*
+   para **Github → `MatCano/ixc-odoo-bridge`, branch `integracao-bidirecional` (depois `main`), caminho `odoo-addons`** (há um `Dockerfile` pronto que
+   parte do `odoo:19.0` e acrescenta os módulos em `/mnt/maisfibra-addons`). Manter as 3 montagens.
+   Implantar, depois *Apps > Atualizar lista* e instalar `maisfibra_crm`
    (e `maisfibra_whatsapp` quando a Evolution existir).
-3. **Estágios**: CRM > Configuração > Estágios — marcar a **Regra MaisFibra** nos estágios existentes
+4. **Estágios**: CRM > Configuração > Estágios — marcar a **Regra MaisFibra** nos estágios existentes
    de PF e PJ (Recolher Documentos, e criar/marcar Negociação, Aguardar Assinatura, Perdemos).
-4. **Bridge no Easypanel**:
+5. **Bridge no Easypanel**:
    - Montagem: volume em `/app/data`.
    - Ambiente: variáveis do `README.md` (novas: `BRIDGE_TOKEN`, `MF_CAMPOS`, `IXC_TB_*`, `IXC_*_DEFAULTS`).
    - Se o deploy do bridge vier **antes** do módulo: `MF_CAMPOS=0`.
-5. **Merge** de `integracao-bidirecional` → `main` (dispara o redeploy do bridge).
-6. Odoo > Definições > **MaisFibra**: URL interna do bridge + `BRIDGE_TOKEN`.
-7. Teste ponta a ponta com 1 lead real: Recolher Documentos → Negociação → marcar ganho no IXC.
-8. **WhatsApp** (opcional nesta etapa): subir Evolution, escanear QR, configurar em Definições > WhatsApp.
+6. **Merge** de `integracao-bidirecional` → `main` (dispara o redeploy do bridge).
+7. Odoo > Definições > **MaisFibra**: URL interna do bridge + `BRIDGE_TOKEN`.
+8. Teste ponta a ponta com 1 lead real: Recolher Documentos → Negociação → marcar ganho no IXC.
+9. **WhatsApp** (opcional nesta etapa): subir Evolution, escanear QR, configurar em Definições > WhatsApp.
 
 ---
 
@@ -109,7 +123,7 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 |---|---|---|
 | PostgreSQL | ✅ | `odoo-db` |
 | Ambientes Dev / Homolog / Prod | ❌ | Só produção. Contrato pede cloud (AWS/Azure/GCP) + VPN; hoje é VPS com Easypanel |
-| Backup diário, 30 dias | ❓ | Não há rotina no Odoo; verificar backups do Easypanel |
+| Backup diário, 30 dias | ❌ | **Nenhum backup** (banco como app comum, sem backup de volume) — prioridade 1 |
 | Auditoria de alterações | ❌ | Community não tem; usar módulo OCA `auditlog` ou desenvolver |
 | Política de governança / LGPD (assinada) | ❌ | |
 | Doc. de arquitetura / relatório de segurança | ⚠️ | §1 deste documento é o começo |
