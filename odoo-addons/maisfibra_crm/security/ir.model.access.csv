@@ -8,3 +8,5 @@ access_mf_canal_mgr,mf.canal.mgr,model_maisfibra_canal_venda,sales_team.group_sa
 access_mf_ixc_consulta,mf.ixc.consulta,model_maisfibra_ixc_consulta,base.group_user,1,1,1,1
 access_mf_ixc_consulta_contrato,mf.ixc.consulta.contrato,model_maisfibra_ixc_consulta_contrato,base.group_user,1,1,1,1
 access_mf_ixc_consulta_fatura,mf.ixc.consulta.fatura,model_maisfibra_ixc_consulta_fatura,base.group_user,1,1,1,1
+access_mf_vendas_analise_user,mf.vendas.analise.user,model_maisfibra_vendas_analise,sales_team.group_sale_salesman,1,0,0,0
+access_mf_relatorio_vendedores,mf.relatorio.vendedores,model_maisfibra_relatorio_vendedores,sales_team.group_sale_salesman,1,1,1,1

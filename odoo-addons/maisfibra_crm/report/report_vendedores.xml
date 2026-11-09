@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_vendedores" model="ir.actions.report">
+        <field name="name">Relatório de Vendedores</field>
+        <field name="model">maisfibra.relatorio.vendedores</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">maisfibra_crm.report_vendedores</field>
+        <field name="report_file">maisfibra_crm.report_vendedores</field>
+        <field name="print_report_name">'Vendedores %s a %s' % (object.data_inicio, object.data_fim)</field>
+    </record>
+
+    <template id="report_vendedores">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h3>Performance de Vendedores</h3>
+                        <p>
+                            Período: <span t-field="o.data_inicio"/> a <span t-field="o.data_fim"/>
+                            <t t-if="o.team_ids"> · Funis: <span t-esc="', '.join(o.team_ids.mapped('name'))"/></t>
+                        </p>
+                        <t t-set="rows" t-value="linhas[o.id]"/>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Vendedor</th>
+                                    <th class="text-end">Leads</th>
+                                    <th class="text-end">Oportunidades</th>
+                                    <th class="text-end">Ganhos</th>
+                                    <th class="text-end">Perdidos</th>
+                                    <th class="text-end">Em aberto</th>
+                                    <th class="text-end">Conversão</th>
+                                    <th class="text-end">Valor vendido</th>
+                                    <th class="text-end">Ticket médio</th>
+                                    <th class="text-end">Ciclo médio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="rows" t-as="r">
+                                    <td t-esc="r['vendedor']"/>
+                                    <td class="text-end" t-esc="r['leads']"/>
+                                    <td class="text-end" t-esc="r['oportunidades']"/>
+                                    <td class="text-end" t-esc="r['ganhos']"/>
+                                    <td class="text-end" t-esc="r['perdidos']"/>
+                                    <td class="text-end" t-esc="r['abertos']"/>
+                                    <td class="text-end" t-esc="'%.1f%%' % r['conversao']"/>
+                                    <td class="text-end" t-esc="'R$ %.2f' % r['valor']"/>
+                                    <td class="text-end" t-esc="'R$ %.2f' % r['ticket']"/>
+                                    <td class="text-end" t-esc="'%.1f dias' % r['ciclo'] if r['ciclo'] is not None else '—'"/>
+                                </tr>
+                                <tr t-if="not rows"><td colspan="10">Nenhum lead no período.</td></tr>
+                            </tbody>
+                        </table>
+                        <p class="text-muted small">
+                            Conversão = ganhos ÷ (ganhos + perdidos). Ciclo = dias entre a criação e o ganho.
+                            Período considera a data de criação do lead.
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
