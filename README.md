@@ -34,8 +34,8 @@ Se o IXC recusar algo, o Odoo **não muda o estágio** e mostra a mensagem do IX
 3. Easypanel > **Ambiente**: configure as variáveis abaixo e faça o deploy.
 4. Odoo > Definições > **MaisFibra**: URL do bridge (interno, ex. `http://ixc-odoo-bridge:8000`)
    e o mesmo `BRIDGE_TOKEN`.
-5. Em cada funil, abra os estágios e confira a **Regra MaisFibra**
-   (o módulo cria 4 estágios globais; se já existirem estágios equivalentes, use a regra neles).
+5. Em cada funil, abra os estágios existentes e marque a **Regra MaisFibra**
+   (o módulo não cria estágios: os funis PF e PJ já têm "Recolher Documentos").
 
 ### Variáveis de ambiente
 | Variável | Exemplo | Obs. |
@@ -46,7 +46,8 @@ Se o IXC recusar algo, o Odoo **não muda o estágio** e mostra a mensagem do IX
 | `BRIDGE_TOKEN` | outro token forte | Odoo → bridge |
 | `MF_CAMPOS` | `1` | `0` = modo antigo |
 | `SYNC_STATE_PATH` | `/app/data/ixc_sync_state.json` | precisa do volume |
-| `IXC_TB_CONDOMINIO` / `IXC_TB_NEGOCIACAO` / `IXC_TB_PLANO` | | **VALIDAR** |
+| `ALERTAS` / `ALERTA_CANAL` / `ALERTA_INTERVALO_MIN` | `1` / `Integração IXC` / `60` | alertas no Odoo Discuss |
+| `IXC_TB_CONDOMINIO` / `IXC_TB_NEGOCIACAO` / `IXC_TB_PLANO` | `cliente_condominio` / `crm_negociacoes` / `vd_contratos` | validados 09/11 |
 | `IXC_CLIENTE_DEFAULTS` | JSON | **VALIDAR** |
 | `IXC_PROSPECT_FIELDS` | `{"crm":"S","status_prospeccao":"P","ativo":"N"}` | **VALIDAR** |
 | `IXC_NEGOCIACAO_DEFAULTS` | JSON | **VALIDAR** |
@@ -73,4 +74,5 @@ Os logs do serviço mostram a mensagem exata do IXC em caso de recusa.
 - [ ] Mapear `indicado_por`, `id_concorrente`, `id_vendedor` para IDs do IXC (hoje vão em `obs`).
 - [ ] OPA/Chatwoot: configurar a automação deles para chamar `/webhook/lead-externo`
       (`{"nome","telefone","email","cpf_cnpj","origem","canal_venda"}`, header `token`).
-- [ ] Monitoramento/alerta de falhas (hoje só logs).
+- [x] Alertas: falhas do sincronismo e das chamadas Odoo→IXC são postadas no canal **Integração IXC**
+      do Odoo (Discuss), uma vez por hora no máximo, e de novo quando normaliza. `GET /health` mostra o estado.

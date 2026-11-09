@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_stage_form_csat" model="ir.ui.view">
+        <field name="name">crm.stage.form.csat</field>
+        <field name="model">crm.stage</field>
+        <field name="inherit_id" ref="crm.crm_stage_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_won']" position="after">
+                <field name="mf_csat"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_lead_form_csat" model="ir.ui.view">
+        <field name="name">crm.lead.form.csat</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Satisfação" name="mf_csat" invisible="not mf_csat_status">
+                    <group>
+                        <field name="mf_csat_status"/>
+                        <field name="mf_csat_nota" invisible="not mf_csat_nota"/>
+                        <field name="mf_csat_data"/>
+                        <field name="mf_csat_comentario"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_lead_search_csat" model="ir.ui.view">
+        <field name="name">crm.lead.search.csat</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="csat_detratores" string="Satisfação baixa (1-2)" domain="[('mf_csat_nota', 'in', [1, 2])]"/>
+                <filter name="csat_promotores" string="Satisfação alta (4-5)" domain="[('mf_csat_nota', '&gt;=', 4)]"/>
+                <filter name="csat_pendente" string="Pesquisa sem resposta" domain="[('mf_csat_status', '=', 'enviada')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_csat_resultados" model="ir.actions.act_window">
+        <field name="name">Satisfação (CSAT)</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">graph,pivot,list,form</field>
+        <field name="domain">[('mf_csat_status', '=', 'respondida')]</field>
+        <field name="context">{'active_test': False, 'graph_measure': 'mf_csat_nota', 'graph_groupbys': ['mf_csat_data:month']}</field>
+        <field name="help" type="html"><p>Notas da pesquisa de satisfação ao longo do tempo. Média por mês, vendedor ou funil.</p></field>
+    </record>
+    <menuitem id="menu_csat" name="Satisfação (CSAT)" parent="maisfibra_crm.menu_mf_relatorios"
+              action="action_csat_resultados" sequence="60"/>
+
+    <record id="res_config_settings_view_form_csat" model="ir.ui.view">
+        <field name="name">res.config.settings.form.csat</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="maisfibra_crm.res_config_settings_view_form_mf"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='maisfibra_crm']" position="inside">
+                <block title="Pesquisa de satisfação (CSAT)">
+                    <setting string="Envio automático" help="Marque 'Enviar pesquisa de satisfação' no(s) estágio(s) desejado(s). Nota 1-2 cria atividade para o gerente.">
+                        <field name="mf_csat_ativo"/>
+                        <div class="content-group" invisible="not mf_csat_ativo">
+                            <div class="row mt8"><label for="mf_csat_canal" class="col-lg-4 o_light_label"/><field name="mf_csat_canal"/></div>
+                            <div class="row"><label for="mf_csat_mensagem" class="col-lg-4 o_light_label"/><field name="mf_csat_mensagem"/></div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ Análise de vendas (painel) ============ -->
+    <record id="vendas_analise_view_graph" model="ir.ui.view">
+        <field name="name">maisfibra.vendas.analise.graph</field>
+        <field name="model">maisfibra.vendas.analise</field>
+        <field name="arch" type="xml">
+            <graph string="Vendas" type="bar" sample="1">
+                <field name="data" interval="month"/>
+                <field name="status"/>
+                <field name="qtd" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="vendas_analise_view_pivot" model="ir.ui.view">
+        <field name="name">maisfibra.vendas.analise.pivot</field>
+        <field name="model">maisfibra.vendas.analise</field>
+        <field name="arch" type="xml">
+            <pivot string="Desempenho" sample="1">
+                <field name="user_id" type="row"/>
+                <field name="data" interval="month" type="col"/>
+                <field name="qtd" type="measure"/>
+                <field name="qtd_ganho" type="measure"/>
+                <field name="qtd_perdido" type="measure"/>
+                <field name="valor_ganho" type="measure"/>
+                <field name="ciclo_dias" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="vendas_analise_view_list" model="ir.ui.view">
+        <field name="name">maisfibra.vendas.analise.list</field>
+        <field name="model">maisfibra.vendas.analise</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="data"/>
+                <field name="lead_id"/>
+                <field name="user_id"/>
+                <field name="team_id"/>
+                <field name="stage_id"/>
+                <field name="source_id"/>
+                <field name="status"/>
+                <field name="valor_esperado" sum="Total"/>
+                <field name="dias_sem_mover" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="vendas_analise_view_search" model="ir.ui.view">
+        <field name="name">maisfibra.vendas.analise.search</field>
+        <field name="model">maisfibra.vendas.analise</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="user_id"/>
+                <field name="team_id"/>
+                <field name="source_id"/>
+                <field name="lead_id"/>
+                <filter name="ganhos" string="Ganhos" domain="[('status', '=', 'won')]"/>
+                <filter name="perdidos" string="Perdidos" domain="[('status', '=', 'lost')]"/>
+                <filter name="abertos" string="Em aberto" domain="[('status', '=', 'pending')]"/>
+                <separator/>
+                <filter name="parados" string="Parados há +7 dias" domain="[('status', '=', 'pending'), ('dias_sem_mover', '&gt;', 7)]"/>
+                <separator/>
+                <filter name="filtro_data" string="Data de criação" date="data"/>
+                <filter name="filtro_fechamento" string="Data de fechamento" date="data_fechamento"/>
+                <group>
+                    <filter name="g_vendedor" string="Vendedor" context="{'group_by': 'user_id'}"/>
+                    <filter name="g_funil" string="Funil" context="{'group_by': 'team_id'}"/>
+                    <filter name="g_origem" string="Origem" context="{'group_by': 'source_id'}"/>
+                    <filter name="g_estagio" string="Estágio" context="{'group_by': 'stage_id'}"/>
+                    <filter name="g_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="g_motivo" string="Motivo de perda" context="{'group_by': 'lost_reason_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_painel_vendas" model="ir.actions.act_window">
+        <field name="name">Painel de Vendas</field>
+        <field name="res_model">maisfibra.vendas.analise</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_filtro_data': 1}</field>
+        <field name="help" type="html"><p>Leads, ganhos, perdidos, valor vendido e ciclo de venda por período, vendedor, funil e origem.</p></field>
+    </record>
+
+    <record id="action_desempenho_vendedores" model="ir.actions.act_window">
+        <field name="name">Desempenho de Vendedores</field>
+        <field name="res_model">maisfibra.vendas.analise</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="view_id" ref="vendas_analise_view_pivot"/>
+    </record>
+
+    <record id="action_leads_por_origem" model="ir.actions.act_window">
+        <field name="name">Leads por Origem</field>
+        <field name="res_model">maisfibra.vendas.analise</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_g_origem': 1}</field>
+    </record>
+
+    <!-- ============ Análise de leads (no próprio CRM) ============ -->
+    <record id="crm_lead_search_mf_analise" model="ir.ui.view">
+        <field name="name">crm.lead.search.maisfibra.analise</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="mf_promissores" string="Promissores (≥ 70%)"
+                        domain="[('probability', '&gt;=', 70), ('won_status', '=', 'pending')]"/>
+                <filter name="mf_parados" string="Em risco: parados há +7 dias"
+                        domain="[('won_status', '=', 'pending'), ('date_last_stage_update', '&lt;', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="mf_atrasados" string="Em risco: atividade atrasada"
+                        domain="[('activity_state', '=', 'overdue')]"/>
+                <filter name="mf_sem_atividade" string="Sem próxima atividade"
+                        domain="[('activity_ids', '=', False), ('won_status', '=', 'pending')]"/>
+                <filter name="mf_vencidos_ixc" string="Com fatura vencida no IXC"
+                        domain="[('mf_ixc_faturas_vencidas', '&gt;', 0)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_analise_leads" model="ir.actions.act_window">
+        <field name="name">Análise de Leads</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,kanban,graph,pivot,form</field>
+        <field name="domain">[('won_status', '=', 'pending')]</field>
+        <field name="context">{'search_default_mf_parados': 1}</field>
+        <field name="help" type="html">
+            <p>Use os filtros <b>Promissores</b> e <b>Em risco</b> para priorizar o dia.</p>
+            <p>Ação sugerida: leads parados → criar atividade de follow-up; atividade atrasada → cobrar o vendedor;
+               promissores → priorizar proposta.</p>
+        </field>
+    </record>
+
+    <!-- ============ Relatório PDF ============ -->
+    <record id="relatorio_vendedores_view_form" model="ir.ui.view">
+        <field name="name">maisfibra.relatorio.vendedores.form</field>
+        <field name="model">maisfibra.relatorio.vendedores</field>
+        <field name="arch" type="xml">
+            <form string="Relatório de vendedores">
+                <group>
+                    <field name="data_inicio"/>
+                    <field name="data_fim"/>
+                    <field name="team_ids" widget="many2many_tags"/>
+                </group>
+                <footer>
+                    <button name="action_imprimir" type="object" string="Gerar PDF" class="btn-primary" icon="fa-file-pdf-o"/>
+                    <button special="cancel" string="Cancelar" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_relatorio_vendedores" model="ir.actions.act_window">
+        <field name="name">Relatório de Vendedores (PDF)</field>
+        <field name="res_model">maisfibra.relatorio.vendedores</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ============ Menus ============ -->
+    <menuitem id="menu_mf_relatorios" name="MaisFibra" parent="crm.crm_menu_report" sequence="1"/>
+    <menuitem id="menu_mf_painel" name="Painel de Vendas" parent="menu_mf_relatorios" action="action_painel_vendas" sequence="10"/>
+    <menuitem id="menu_mf_desempenho" name="Desempenho de Vendedores" parent="menu_mf_relatorios" action="action_desempenho_vendedores" sequence="20"/>
+    <menuitem id="menu_mf_origem" name="Leads por Origem" parent="menu_mf_relatorios" action="action_leads_por_origem" sequence="30"/>
+    <menuitem id="menu_mf_analise_leads" name="Análise de Leads" parent="menu_mf_relatorios" action="action_analise_leads" sequence="40"/>
+    <menuitem id="menu_mf_relatorio_pdf" name="Relatório de Vendedores (PDF)" parent="menu_mf_relatorios" action="action_relatorio_vendedores" sequence="50"/>
+</odoo>

@@ -10,6 +10,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 
+import alertas
 import config
 import ixc
 from odoo import conexao, resetar_conexao
@@ -269,12 +270,14 @@ def sincronizar_fonte(tabela, campo_data, ns, processar, data_only, lookback, re
             watermark = (agora - delta).strftime(fmt)
             logger.info(f"{ns}: backfill desde {watermark}")
 
-        pagina, novos, max_data = 1, 0, watermark
+        pagina, novos, falhas, max_data = 1, 0, 0, watermark
+        erro_ixc = ""
         while True:
             try:
                 regs = ixc.listar(tabela, campo_data, watermark, oper=">=", pagina=pagina)
             except Exception as e:
                 logger.error(f"{ns}: falha ao listar {tabela}: {e}")
+                erro_ixc = str(e)[:300]
                 break
             for item in regs:
                 rid = str(item.get("id"))
@@ -286,15 +289,24 @@ def sincronizar_fonte(tabela, campo_data, ns, processar, data_only, lookback, re
                     if ts and not ts.startswith("0000") and ts > max_data:
                         max_data = ts
                     novos += 1
+                else:
+                    falhas += 1
             if len(regs) < config.PAGE_SIZE:
                 break
             pagina += 1
 
         max_data = min(max_data, agora_ref)
         salvar_estado(ns, max_data, set() if reprocessar else processados)
-        logger.info(f"{ns}: {novos} processados (watermark {max_data})")
+        logger.info(f"{ns}: {novos} processados, {falhas} falhas (watermark {max_data})")
+        if erro_ixc:
+            alertas.falha(f"sincronismo {ns}", f"não consegui ler o IXC ({tabela}): {erro_ixc}")
+        elif falhas:
+            alertas.falha(f"sincronismo {ns}", f"{falhas} registro(s) não foram gravados no Odoo neste ciclo")
+        else:
+            alertas.ok(f"sincronismo {ns}")
     except Exception as e:
         logger.error(f"Falha no ciclo {ns}: {e}")
+        alertas.falha(f"sincronismo {ns}", f"ciclo interrompido: {str(e)[:300]}")
 
 
 def sync_leads():
@@ -347,6 +359,54 @@ def sync_status():
                       data_only=False, lookback=config.DELTA_LOOKBACK_HOURS, reprocessar=True)
 
 
+def processar_status_negociacao(neg):
+    """Negociação alterada no IXC (validado 09/11: ganho/perda ficam em data_vencemos/data_perdemos
+    da negociação). Move o lead vinculado no Odoo."""
+    if not config.MF_CAMPOS:
+        return True
+    try:
+        status = neg.get("status")  # validado: V = vencemos, D = perdemos, N = em andamento
+        if status == "V" or not _vazio(neg.get("data_vencemos")):
+            codigo = "aguardando_assinatura"
+        elif status == "D" or not _vazio(neg.get("data_perdemos")):
+            codigo = "perdemos"
+        else:
+            return True
+        odoo = conexao()
+        leads = odoo.search("crm.lead", [["mf_ixc_negociacao_id", "=", str(neg.get("id"))]], limit=1)
+        if not leads and not _vazio(neg.get("id_cliente")):
+            leads = odoo.search("crm.lead", [["mf_ixc_cliente_id", "=", str(neg.get("id_cliente"))]], limit=1)
+        if not leads:
+            return True
+        lead = odoo.read("crm.lead", leads, ["stage_id", "team_id", "mf_ixc_negociacao_id"])[0]
+        team_id = lead["team_id"][0] if lead.get("team_id") else None
+        stage_id = odoo.stage_por_codigo(codigo, team_id)
+        vals = {}
+        if not lead.get("mf_ixc_negociacao_id"):
+            vals["mf_ixc_negociacao_id"] = str(neg.get("id"))
+        if stage_id and (not lead.get("stage_id") or lead["stage_id"][0] != stage_id):
+            vals["stage_id"] = stage_id
+        if vals:
+            odoo.write("crm.lead", leads, vals)
+        if "stage_id" in vals:
+            odoo.call("crm.lead", "message_post", [leads], {
+                "body": f"IXC: negociação {neg.get('id')} {'GANHA' if codigo != 'perdemos' else 'PERDIDA'} — lead movido.",
+                "subtype_xmlid": "mail.mt_note",
+            })
+            logger.info(f"Lead {leads[0]} -> {codigo} (negociação IXC {neg.get('id')})")
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao processar negociação {neg.get('id')}: {e}")
+        resetar_conexao()
+        return False
+
+
+def sync_status_negociacoes():
+    sincronizar_fonte(config.IXC_TB_NEGOCIACAO, "ultima_atualizacao", "negociacoes",
+                      processar_status_negociacao, data_only=False,
+                      lookback=config.DELTA_LOOKBACK_HOURS, reprocessar=True)
+
+
 # ======================================================================
 # Cadastros: condomínios e planos
 # ======================================================================
@@ -366,7 +426,7 @@ def sync_condominios():
     n = 0
     try:
         for r in ixc.listar_tudo(config.IXC_TB_CONDOMINIO):
-            nome = r.get("condominio") or r.get("nome") or r.get("descricao")  # VALIDAR
+            nome = r.get("condominio") or r.get("nome")  # validado: campo "condominio"
             if not nome:
                 continue
             _upsert_por_ixc_id("maisfibra.condominio", str(r["id"]), {
@@ -375,13 +435,15 @@ def sync_condominios():
                 "numero": r.get("numero") or "",
                 "bairro": r.get("bairro") or "",
                 "cep": r.get("cep") or "",
-                "cidade": ixc.nome_cidade(r.get("cidade")),
-                "ixc_cidade_id": str(r.get("cidade") or ""),
+                "cidade": ixc.nome_cidade(r.get("id_cidade") or r.get("cidade")),
+                "ixc_cidade_id": str(r.get("id_cidade") or r.get("cidade") or ""),
             })
             n += 1
         logger.info(f"Condomínios sincronizados: {n}")
+        alertas.ok("condomínios")
     except Exception as e:
         logger.error(f"Falha ao sincronizar condomínios ({config.IXC_TB_CONDOMINIO}): {e}")
+        alertas.falha("condomínios", f"tabela {config.IXC_TB_CONDOMINIO}: {str(e)[:300]}")
         resetar_conexao()
 
 
@@ -391,14 +453,19 @@ def sync_planos():
     n = 0
     try:
         for r in ixc.listar_tudo(config.IXC_TB_PLANO):
-            nome = r.get("descricao") or r.get("nome") or r.get("plano")  # VALIDAR
+            nome = r.get("nome") or r.get("descricao")  # vd_contratos: nome do plano de serviço
             if not nome:
                 continue
+            valor = r.get("valor_contrato") or ""
             _upsert_por_ixc_id("maisfibra.plano", str(r["id"]), {
-                "name": nome, "active": r.get("ativo", "S") != "N",
+                "name": nome,
+                "descricao": f"{r.get('descricao') or ''} {('— R$ ' + valor) if valor else ''}".strip(),
+                "active": (r.get("Ativo") or r.get("ativo") or "S") != "N",
             })
             n += 1
         logger.info(f"Planos sincronizados: {n}")
+        alertas.ok("planos")
     except Exception as e:
         logger.error(f"Falha ao sincronizar planos ({config.IXC_TB_PLANO}): {e}")
+        alertas.falha("planos", f"tabela {config.IXC_TB_PLANO}: {str(e)[:300]}")
         resetar_conexao()

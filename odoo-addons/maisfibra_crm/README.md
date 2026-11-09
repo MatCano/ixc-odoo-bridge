@@ -1,4 +1,4 @@
-# maisfibra_crm (Odoo 18)
+# maisfibra_crm (Odoo 19)
 
 Fluxo comercial da MaisFibra no CRM. Depende do serviço **ixc-odoo-bridge** para falar com o IXC.
 
@@ -7,7 +7,7 @@ Fluxo comercial da MaisFibra no CRM. Depende do serviço **ixc-odoo-bridge** par
 - **Lead**: CPF/CNPJ, como nos conheceu (origem), canal de venda, indicado por, concorrente,
   IDs do IXC (lead, prospect, negociação), análise de crédito.
 - **Abas**: "Cliente & Instalação" e "Negociação" (a partir de Recolher Documentos).
-- **Estágios com regra**: Recolher Documentos, Negociação, Aguardar Assinatura, Perdemos.
+- **Estágios com regra**: NÃO cria estágios. Marque a "Regra MaisFibra" nos estágios que já existem em cada funil (Recolher Documentos, Negociação, Aguardar Assinatura, Perdemos).
   A regra fica no campo **Regra MaisFibra** do estágio — renomear não quebra nada.
 - **Cadastros** (CRM > Configuração > MaisFibra): Condomínios e Planos (sincronizados do IXC),
   Canais de venda (manual).
@@ -22,4 +22,4 @@ Fluxo comercial da MaisFibra no CRM. Depende do serviço **ixc-odoo-bridge** par
 ## Instalação
 1. Pasta `maisfibra_crm/` no diretório de addons do Odoo, reiniciar, Apps > Atualizar lista > instalar.
 2. Definições > **MaisFibra**: URL e token do bridge.
-3. Conferir a Regra MaisFibra nos estágios de cada funil.
+3. CRM > Configuração > Estágios: em cada funil, abrir Recolher Documentos e escolher a Regra MaisFibra; idem Negociação, Aguardar Assinatura (ganho) e Perdemos (criar os que não existirem).

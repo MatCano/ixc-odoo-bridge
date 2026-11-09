@@ -37,4 +37,6 @@ class WhatsappComposer(models.TransientModel):
         self.env["maisfibra.whatsapp.message"]._post_on_record(
             record, "out", self.body, self.env.user.name
         )
+        if is_lead:
+            record._wa_pausar_bot()  # atendimento humano em andamento
         return {"type": "ir.actions.act_window_close"}

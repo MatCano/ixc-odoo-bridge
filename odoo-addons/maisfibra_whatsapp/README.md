@@ -1,4 +1,4 @@
-# maisfibra_whatsapp — WhatsApp dentro do Odoo (Odoo 18)
+# maisfibra_whatsapp — WhatsApp dentro do Odoo (Odoo 19)
 
 Envia e recebe WhatsApp direto do CRM. Provedor atual: **Evolution API**; a camada
 `maisfibra.whatsapp.provider` permite trocar para a **Meta Cloud API** sem mexer no resto.
@@ -35,7 +35,11 @@ Envia e recebe WhatsApp direto do CRM. Provedor atual: **Evolution API**; a cama
 ## Pendências / próximos passos
 - [ ] **Validar no ambiente real** (não foi testado contra a instância da MaisFibra).
 - [ ] Mídia: hoje imagem/áudio/documento entram só como rótulo (`[imagem]`), sem o arquivo.
-- [ ] Meta Cloud API: implementar `_meta_send_text` + templates aprovados.
+- [x] Meta Cloud API: envio de texto e de **templates** (`send_template`), webhook com verificação
+      (`GET`) e assinatura `X-Hub-Signature-256` (`POST`) em `/maisfibra/whatsapp/meta`.
+      Para usar: Definições > WhatsApp > Provedor = Meta, preencher Phone Number ID, token, verify token
+      e app secret; no Meta for Developers, apontar o webhook e assinar o campo `messages`.
+      Fora da janela de 24h a Meta só aceita template aprovado — o erro avisa isso.
 - [ ] Régua de cobrança e CSAT: **só com Meta** (disparo em volume pela Evolution arrisca
       banimento do número). Depende de dados de fatura do IXC via bridge.
 - [ ] Desligar o OPA somente depois que a captação de leads estiver estável aqui.

@@ -44,7 +44,7 @@ class Odoo:
         """Estágio com a 'Regra MaisFibra' = codigo; prefere o do funil do lead."""
         domain = [["mf_code", "=", codigo]]
         if team_id:
-            ids = self.search("crm.stage", domain + [["team_id", "=", team_id]], limit=1)
+            ids = self.search("crm.stage", domain + [["team_ids", "in", [team_id]]], limit=1)
             if ids:
                 return ids[0]
         ids = self.search("crm.stage", domain, limit=1, order="sequence")

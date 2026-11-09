@@ -6,8 +6,9 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
+                <button name="action_mf_consultar_ixc" type="object" string="Consultar IXC" icon="fa-file-text-o"/>
                 <button name="action_mf_consultar_credito" type="object" string="Consultar crédito"
-                        icon="fa-search-dollar" invisible="not mf_cpf_cnpj"/>
+                        icon="fa-search" invisible="not mf_cpf_cnpj"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
@@ -35,6 +36,14 @@
                     <group string="Crédito">
                         <field name="mf_credito_status" readonly="1"/>
                         <field name="mf_credito_obs" readonly="1" invisible="not mf_credito_obs"/>
+                    </group>
+                    <group string="Financeiro e serviço (IXC)">
+                        <field name="mf_ixc_status_servico"/>
+                        <field name="mf_ixc_faturas_abertas"/>
+                        <field name="mf_ixc_faturas_vencidas" decoration-danger="mf_ixc_faturas_vencidas &gt; 0"/>
+                        <field name="mf_ixc_valor_aberto"/>
+                        <field name="mf_ixc_valor_vencido" decoration-danger="mf_ixc_valor_vencido &gt; 0"/>
+                        <field name="mf_ixc_consultado_em"/>
                     </group>
                     <group string="IXC">
                         <field name="mf_stage_code" invisible="1"/>

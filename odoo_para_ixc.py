@@ -13,6 +13,9 @@ from ixc_para_odoo import digitos, funil_do_lead, upsert_lead, upsert_partner
 
 logger = logging.getLogger("IXC-Odoo-Bridge.fluxo")
 
+# Status da negociação no IXC (validado 09/11): N = em andamento, V = ganha (vencemos), D = perdida
+STATUS_ABERTA = "N"
+
 
 def _hoje():
     return datetime.now(config.TZ_BRASIL).strftime("%Y-%m-%d")
@@ -54,6 +57,7 @@ def montar_cliente(d):
         "bloco": d.get("bloco", ""),
         "apartamento": d.get("apartamento", ""),
         "obs": _obs(d),
+        **({"id_vendedor": d["vendedor_ixc_id"]} if d.get("vendedor_ixc_id") else {}),
     }
 
 
@@ -87,10 +91,11 @@ def virar_prospect(d):
 
 
 def criar_negociacao(d):
-    """Retorna o id da negociação no IXC.
+    """Retorna o id da negociação no IXC (tabela crm_negociacoes, validada em 09/11).
 
-    VALIDAR (README): nome da tabela e dos campos da negociação no IXC da MaisFibra.
-    Os nomes abaixo seguem o padrão do IXC (id_cliente, id_plano...).
+    - Reaproveita negociação ABERTA (status N) do mesmo cliente em vez de duplicar.
+    - Endereço: usa o do cliente (considera_endereco_cliente=S, padrão em 98% das negociações).
+    - Funil, filial, prioridade e plano de negócio vêm de IXC_NEGOCIACAO_DEFAULTS.
     """
     cliente_id = d.get("ixc_cliente_id")
     if not cliente_id:
@@ -98,14 +103,25 @@ def criar_negociacao(d):
     neg = dict(config.IXC_NEGOCIACAO_DEFAULTS)
     neg.update({
         "id_cliente": cliente_id,
-        "id_plano": d.get("plano_ixc_id") or "0",
-        "descricao": d.get("descricao_produto", ""),
+        "id_contato": d.get("ixc_contato_id") or "0",
+        "descricao": d.get("descricao_produto", "") or d.get("plano", ""),
         "obs": f"{_obs(d)} | Plano: {d.get('plano', '')}",
-        "id_lead": d.get("ixc_contato_id") or "",
-        "valor": str(d.get("valor_esperado") or "0"),
-        "data": _hoje(),
+        "data_inicio": _hoje(),
     })
+    if d.get("plano_ixc_id"):
+        neg["id_plano"] = d["plano_ixc_id"]          # vd_contratos (plano de serviço)
+    if d.get("canal_venda_ixc_id"):
+        neg["id_canal_origem"] = d["canal_venda_ixc_id"]
+    if d.get("funil_ixc_id"):
+        neg["id_funil"] = d["funil_ixc_id"]          # funil do time no Odoo (PF/PJ)
+    if d.get("valor_esperado"):
+        neg["valor_mensal"] = str(d["valor_esperado"])
+
     neg_id = d.get("ixc_negociacao_id")
+    if not neg_id:
+        abertas = [n for n in ixc.listar(config.IXC_TB_NEGOCIACAO, "id_cliente", cliente_id, rp=20)
+                   if n.get("status") == STATUS_ABERTA]
+        neg_id = str(abertas[0]["id"]) if abertas else ""
     if neg_id:
         ixc.alterar(config.IXC_TB_NEGOCIACAO, neg_id, neg)
     else:

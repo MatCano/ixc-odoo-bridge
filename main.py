@@ -6,6 +6,7 @@ Rotas:
   POST /webhook/lead-externo   (OPA/Chatwoot/landing; header token = WEBHOOK_SECRET)
   POST /odoo/prospect          (Odoo -> IXC; header token = BRIDGE_TOKEN)
   POST /odoo/negociacao        (Odoo -> IXC; header token = BRIDGE_TOKEN)
+  POST /odoo/cliente-ixc       (Odoo -> IXC, leitura: contratos e faturas; header token = BRIDGE_TOKEN)
   POST /odoo/consulta-credito  (Odoo -> IXC; header token = BRIDGE_TOKEN)
 
 Jobs:
@@ -21,7 +22,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
+import alertas
 import config
+import consulta_ixc
 import ixc
 import ixc_para_odoo as sync
 import odoo_para_ixc as fluxo
@@ -79,12 +82,15 @@ class OdooLead(BaseModel):
 # ======================================================================
 def _executar(func, payload, nome):
     try:
-        return func(payload.model_dump())
+        resultado = func(payload.model_dump())
+        alertas.ok(f"Odoo→IXC {nome}")
+        return resultado
     except ixc.IXCError as e:
         logger.warning(f"{nome} recusado: {e}")
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.exception(f"{nome} falhou")
+        alertas.falha(f"Odoo→IXC {nome}", f"lead Odoo #{payload.odoo_lead_id}: {str(e)[:300]}")
         raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
 
 
@@ -100,6 +106,24 @@ def odoo_negociacao(payload: OdooLead, token: str = Header(None)):
     _auth(token, config.BRIDGE_TOKEN)
     neg_id = _executar(fluxo.criar_negociacao, payload, "negociacao")
     return {"ixc_negociacao_id": neg_id}
+
+
+class ConsultaCliente(BaseModel):
+    ixc_cliente_id: str = ""
+    cpf_cnpj: str = ""
+
+
+@app.post("/odoo/cliente-ixc")
+def odoo_cliente_ixc(payload: ConsultaCliente, token: str = Header(None)):
+    """Contratos, status do serviço e faturas do cliente (somente leitura, tempo real)."""
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        return consulta_ixc.consultar(payload.ixc_cliente_id, payload.cpf_cnpj)
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("consulta cliente IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
 
 
 @app.post("/odoo/consulta-credito")
@@ -131,7 +155,7 @@ def webhook_novo_cliente(payload: LeadPayload, background_tasks: BackgroundTasks
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "mf_campos": config.MF_CAMPOS}
+    return {"status": "ok", "mf_campos": config.MF_CAMPOS, "alertas": alertas.resumo()}
 
 
 # ======================================================================
@@ -139,7 +163,7 @@ def health_check():
 # ======================================================================
 scheduler = BackgroundScheduler(timezone=str(config.TZ_BRASIL))
 _agora = datetime.now(config.TZ_BRASIL)
-for job in (sync.sync_leads, sync.sync_clientes, sync.sync_status):
+for job in (sync.sync_leads, sync.sync_clientes, sync.sync_status, sync.sync_status_negociacoes):
     scheduler.add_job(job, "interval", minutes=config.POLL_INTERVAL_MINUTES,
                       max_instances=1, coalesce=True, next_run_time=_agora)
 for job in (sync.sync_condominios, sync.sync_planos):

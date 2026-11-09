@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Centros de custo: um por CNPJ. Para usar, ative "Contabilidade Analítica" em
+     Faturamento > Configurações e crie um centro para cada CNPJ adicional. -->
+<odoo noupdate="1">
+    <record id="plano_centros_custo" model="account.analytic.plan">
+        <field name="name">Centros de Custo</field>
+    </record>
+    <record id="cc_maisfibra_principal" model="account.analytic.account">
+        <field name="name">MAIS FIBRA — CNPJ principal</field>
+        <field name="code">CC-001</field>
+        <field name="plan_id" ref="plano_centros_custo"/>
+    </record>
+</odoo>

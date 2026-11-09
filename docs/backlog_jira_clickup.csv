@@ -1,0 +1,29 @@
+Summary,Description,Issue Type,Priority,Labels,Sprint,Due Date,Status
+"Validar tabelas e campos do IXC","HANDOFF §6: tabelas de condomínio, negociação e plano; código de prospect; defaults de cliente; permissões da API. Ajustar variáveis IXC_TB_* e IXC_*_DEFAULTS.",Task,Highest,frente1;ixc,Sprint 1,2026-11-11,To Do
+"Migrar vínculos antigos com o IXC","Odoo > Definições > MaisFibra > Migrar agora. Conferir 5 leads antigos.",Task,High,frente1;odoo,Sprint 1,2026-11-10,To Do
+"Deploy do bridge novo","Variáveis BRIDGE_TOKEN, MF_CAMPOS=1, SYNC_STATE_PATH; merge integracao-bidirecional -> main; URL e token em Definições > MaisFibra.",Task,Highest,frente1;bridge,Sprint 1,2026-11-12,To Do
+"Implantar Odoo e instalar auditoria, CSAT e financeiro","Easypanel > odoo > Implantar (aplica o endurecimento do Odoo). Apps > Atualizar lista > instalar maisfibra_auditoria, maisfibra_csat, maisfibra_financeiro.",Task,High,frente0;frente2;frente3,Sprint 1,2026-11-10,To Do
+"Marcar Regra MaisFibra nos estágios","PF e PJ: Recolher Documentos, Negociação, Aguardar Assinatura, Perdemos. Só depois da validação do IXC.",Task,High,frente1;odoo,Sprint 1,2026-11-13,To Do
+"Teste ponta a ponta com lead real","Recolher Documentos -> Negociação -> vencemos no IXC. PLANO_DE_TESTES §3 e §4.",Task,Highest,frente1;testes,Sprint 1,2026-11-13,To Do
+"Testes com 100+ clientes e relatório","PLANO_DE_TESTES §5 e §7. Critério: >=98% vinculados, 100% da amostra igual ao IXC.",Task,High,frente1;testes,Sprint 2,2026-11-18,To Do
+"Restringir acesso ao painel e regerar tokens de deploy","Relatório de segurança S3. Painel só por HTTPS/VPN.",Task,Highest,frente0;seguranca,Sprint 1,2026-11-10,To Do
+"Tornar repositório privado","Relatório de segurança S4. Gerar chave SSH no Easypanel (odoo e ixc-odoo-bridge) e adicionar como deploy key.",Task,High,frente0;seguranca,Sprint 1,2026-11-10,To Do
+"Ativar 2FA e política de senha","Relatório de segurança S6 e S9. OPERACAO §4.",Task,High,frente0;seguranca,Sprint 1,2026-11-12,To Do
+"Backup externo + pg_dump + teste de restauração","OPERACAO §1.2, §1.3 e §2. Retenção 30 dias.",Task,High,frente0;backup,Sprint 2,2026-11-17,To Do
+"Ambiente de homologação","OPERACAO §3. Cópia do banco, automações neutralizadas.",Task,Medium,frente0;infra,Sprint 2,2026-11-19,To Do
+"VPN para acesso administrativo","OPERACAO §4. WireGuard ou Tailscale.",Task,Medium,frente0;infra,Sprint 3,2026-11-25,To Do
+"Revisar e assinar política de governança e LGPD","docs/GOVERNANCA_E_LGPD.md: preencher DPO, localização dos dados, responsáveis; revisão jurídica; assinatura.",Task,Medium,frente0;lgpd,Sprint 3,2026-11-26,To Do
+"Contratar SMTP e ligar e-mails automáticos","SendGrid ou similar; Configurações > Técnico > Servidor de saída; ligar boas-vindas e escolher templates nos estágios.",Task,High,frente2;email,Sprint 1,2026-11-13,To Do
+"Subir Evolution API e ligar WhatsApp","Template Evolution no Easypanel; QR com o número da Mais Fibra; Definições > WhatsApp; webhook MESSAGES_UPSERT.",Task,High,frente2;whatsapp,Sprint 1,2026-11-13,To Do
+"Escrever mensagens de WhatsApp por estágio e testar chatbot","PLANO_DE_TESTES W1-W7. Ligar automações só após teste com números da equipe.",Task,Medium,frente2;whatsapp,Sprint 2,2026-11-19,To Do
+"Ligar pesquisa de satisfação (CSAT)","Definições > MaisFibra > CSAT; marcar estágio pós-instalação.",Task,Medium,frente2;csat,Sprint 2,2026-11-19,To Do
+"Configurar OPA e Chatwoot para o webhook de leads","POST /webhook/lead-externo com nome, telefone, email, cpf_cnpj, origem; header token.",Task,Medium,frente2;integracao,Sprint 2,2026-11-19,To Do
+"Testes de entrega (100 e-mails, 50 WhatsApps)","PLANO_DE_TESTES M3 e W7.",Task,Medium,frente2;testes,Sprint 3,2026-11-24,To Do
+"Decidir escopo do financeiro e da cobrança","Community já decidido (09/11). Falta: Odoo assume contas a receber/cobrança ou o IXC segue como fonte? HANDOFF §7.",Task,Highest,frente3;decisao,Sprint 1,2026-11-12,To Do
+"Configurar alçadas de aprovação e centros de custo","Definir Gerente/Diretor/CFO nos usuários; ligar aprovação; ativar Contabilidade Analítica; um centro por CNPJ.",Task,Medium,frente3;financeiro,Sprint 2,2026-11-19,To Do
+"Configuração fiscal com contador","ICMS, ISS, PIS, COFINS, IR; avaliar OCA l10n-brazil.",Task,Medium,frente3;fiscal,Sprint 3,2026-11-27,To Do
+"Consulta de crédito","Implementar /odoo/consulta-credito com a documentação da Central de consultas do cliente.",Task,Medium,frente1;ixc,Sprint 2,2026-11-20,To Do
+"Mapear indicado por, concorrente e vendedor para IDs do IXC","Hoje vão em obs; usar id_concorrente, indicado_por, id_vendedor.",Task,Low,frente1;ixc,Sprint 2,2026-11-20,To Do
+"Remover campos legados x_*","x_ID_IXC, x_id_IXC, x_status_ixc, x_viabilidade, x_codigo_cliente_ixc (vazios).",Task,Low,frente1;limpeza,Sprint 3,2026-11-25,To Do
+"Entrega formal e aceite","Relatório de testes, documentos assinados, demonstração ao cliente.",Task,Highest,entrega,Sprint 3,2026-11-30,To Do
+"Incorporar módulos OCA ao Odoo (após revisão)","Verificação feita em 09/11 (HANDOFF §7): conciliação, extrato, DRE/Balanço, mis_builder e helpdesk têm 19.0. Revisar o código, adicionar ao Dockerfile pelos commits listados, testar em homologação e instalar.",Task,High,frente3;community,Sprint 1,2026-11-13,To Do

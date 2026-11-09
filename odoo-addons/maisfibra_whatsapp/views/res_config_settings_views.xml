@@ -21,6 +21,39 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Meta Cloud API (oficial)" invisible="wa_provider != 'meta'">
+                        <setting string="Conexão" help="Meta for Developers > seu app > WhatsApp > Configuração da API.">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="wa_meta_phone_number_id" class="col-lg-4 o_light_label"/><field name="wa_meta_phone_number_id"/></div>
+                                <div class="row"><label for="wa_meta_token" class="col-lg-4 o_light_label"/><field name="wa_meta_token" password="True"/></div>
+                                <div class="row"><label for="wa_meta_api_version" class="col-lg-4 o_light_label"/><field name="wa_meta_api_version"/></div>
+                            </div>
+                        </setting>
+                        <setting string="Webhook" help="Callback URL: https://SEU-ODOO/maisfibra/whatsapp/meta · campo: messages">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="wa_meta_verify_token" class="col-lg-4 o_light_label"/><field name="wa_meta_verify_token" password="True"/></div>
+                                <div class="row"><label for="wa_meta_app_secret" class="col-lg-4 o_light_label"/><field name="wa_meta_app_secret" password="True"/></div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Automações (desligadas por padrão)">
+                        <setting string="Boas-vindas para lead novo" help="Não dispara para leads vindos do sincronismo com o IXC. Variáveis: {nome}, {vendedor}, {empresa}.">
+                            <field name="wa_auto_boas_vindas"/>
+                            <div class="content-group" invisible="not wa_auto_boas_vindas">
+                                <field name="wa_msg_boas_vindas" class="w-100"/>
+                            </div>
+                        </setting>
+                        <setting string="Mensagem ao mudar de estágio" help="Escreva a mensagem no próprio estágio (CRM > Configuração > Estágios).">
+                            <field name="wa_auto_estagio"/>
+                        </setting>
+                        <setting string="Chatbot básico" help="Menu: 1 contratar, 2 já sou cliente, 3 atendente. Opções 1 e 3 criam atividade para o vendedor e pausam o bot.">
+                            <field name="wa_bot_ativo"/>
+                            <div class="content-group" invisible="not wa_bot_ativo">
+                                <div class="row mt8"><label for="wa_bot_menu" class="col-lg-4 o_light_label"/><field name="wa_bot_menu"/></div>
+                                <div class="row"><label for="wa_bot_pausa_horas" class="col-lg-4 o_light_label"/><field name="wa_bot_pausa_horas"/></div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Recebimento">
                         <setting string="Webhook" help="Use em: /maisfibra/whatsapp/webhook?token=SEU_TOKEN">
                             <div class="content-group">

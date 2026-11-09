@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Alçadas de aprovação de contas a pagar (hierárquicas: CFO > Diretor > Gerente) -->
+    <record id="group_aprovador_gerente" model="res.groups">
+        <field name="name">Aprovador de pagamentos: Gerente</field>
+        <field name="privilege_id" ref="account.res_groups_privilege_accounting"/>
+        <field name="implied_ids" eval="[(4, ref('account.group_account_invoice'))]"/>
+    </record>
+    <record id="group_aprovador_diretor" model="res.groups">
+        <field name="name">Aprovador de pagamentos: Diretor</field>
+        <field name="privilege_id" ref="account.res_groups_privilege_accounting"/>
+        <field name="implied_ids" eval="[(4, ref('group_aprovador_gerente'))]"/>
+    </record>
+    <record id="group_aprovador_cfo" model="res.groups">
+        <field name="name">Aprovador de pagamentos: CFO</field>
+        <field name="privilege_id" ref="account.res_groups_privilege_accounting"/>
+        <field name="implied_ids" eval="[(4, ref('group_aprovador_diretor'))]"/>
+    </record>
+</odoo>
