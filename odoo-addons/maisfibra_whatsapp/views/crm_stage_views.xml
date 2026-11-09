@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_stage_form_whatsapp" model="ir.ui.view">
+        <field name="name">crm.stage.form.whatsapp</field>
+        <field name="model">crm.stage</field>
+        <field name="inherit_id" ref="crm.crm_stage_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_won']" position="after">
+                <field name="wa_mensagem" placeholder="Ex.: Olá {nome}, recebemos seus documentos! Próximo passo: ..."/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

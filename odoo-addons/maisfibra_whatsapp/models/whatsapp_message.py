@@ -21,12 +21,16 @@ class WhatsappMessage(models.Model):
     )
     body = fields.Text("Mensagem")
     state = fields.Selection(
-        [("sent", "Enviada"), ("received", "Recebida"), ("error", "Erro")],
+        [("queued", "Na fila"), ("sent", "Enviada"), ("received", "Recebida"), ("error", "Erro")],
         string="Status", default="sent",
     )
     external_id = fields.Char("ID externo", index=True, copy=False)
     error_message = fields.Text("Erro")
     user_id = fields.Many2one("res.users", string="Enviada por")
+    origem = fields.Selection(
+        [("manual", "Manual"), ("auto", "Automação"), ("bot", "Chatbot")],
+        string="Origem", default="manual",
+    )
 
     _external_id_uniq = models.Constraint("unique(external_id)", "Mensagem já registrada.")
 
@@ -92,7 +96,7 @@ class WhatsappMessage(models.Model):
         }
         if team_id:
             vals["team_id"] = team_id
-        lead = Lead.create(vals)
+        lead = Lead.with_context(wa_sem_boas_vindas=True).create(vals)
         _logger.info("WhatsApp: lead %s criado para %s", lead.id, number)
         return lead
 
@@ -117,3 +121,40 @@ class WhatsappMessage(models.Model):
         })
         target = lead or partner
         self._post_on_record(target, direction, text, push_name if not from_me else "")
+        if from_me and lead:
+            lead.sudo()._wa_pausar_bot()  # alguém da equipe respondeu pelo celular
+        elif lead:
+            self.env["maisfibra.whatsapp.bot"].sudo().responder(lead, number, text)
+
+    # ------------------------------------------------------------------
+    # Fila de envio (automações e chatbot não travam a tela do usuário)
+    # ------------------------------------------------------------------
+    @api.model
+    def enfileirar(self, phone, body, lead=None, partner=None, origem="auto"):
+        provider = self.env["maisfibra.whatsapp.provider"]
+        number = provider.normalize_phone(phone)
+        if not number or not (body or "").strip():
+            return self.browse()
+        msg = self.sudo().create({
+            "phone": number, "body": body, "direction": "out", "state": "queued", "origem": origem,
+            "lead_id": lead.id if lead else False,
+            "partner_id": (partner or (lead.partner_id if lead else False) or self.env["res.partner"]).id or False,
+        })
+        cron = self.env.ref("maisfibra_whatsapp.cron_enviar_fila", raise_if_not_found=False)
+        if cron:
+            cron.sudo()._trigger()
+        return msg
+
+    @api.model
+    def _cron_enviar_fila(self, limite=50):
+        provider = self.env["maisfibra.whatsapp.provider"]
+        for msg in self.sudo().search([("state", "=", "queued")], order="id", limit=limite):
+            try:
+                ext = provider.send_text(msg.phone, msg.body)
+                msg.write({"state": "sent", "external_id": ext or False})
+                self._post_on_record(msg.lead_id or msg.partner_id, "out", msg.body,
+                                     "Chatbot" if msg.origem == "bot" else "Automação")
+            except Exception as e:  # noqa: BLE001 — falha de um envio não pode travar a fila
+                _logger.warning("WhatsApp: falha ao enviar %s: %s", msg.id, e)
+                msg.write({"state": "error", "error_message": str(e)[:500]})
+            self.env.cr.commit()  # cada envio é independente

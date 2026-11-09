@@ -7,7 +7,7 @@ WhatsApp integrado ao Odoo para a MaisFibra:
 - Botão de WhatsApp no Lead/Oportunidade e no Contato
 - Envio de mensagens pelo provedor configurado (Evolution API; Meta preparado)
 - Recebimento via webhook: mensagem vai pro chatter; número novo cria lead com origem WhatsApp
-- Histórico de mensagens em CRM > WhatsApp
+- Automações: boas-vindas, mensagem por estágio e chatbot básico (desligados por padrão)\n- Histórico de mensagens em CRM > WhatsApp
     """,
     "author": "MaisFibra",
     "category": "Sales/CRM",
@@ -15,11 +15,13 @@ WhatsApp integrado ao Odoo para a MaisFibra:
     "depends": ["base", "mail", "crm", "utm"],
     "data": [
         "security/ir.model.access.csv",
+        "data/ir_cron.xml",
         "wizard/whatsapp_composer_views.xml",
         "views/whatsapp_message_views.xml",
         "views/crm_lead_views.xml",
         "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
+        "views/crm_stage_views.xml",
     ],
     "external_dependencies": {"python": ["requests"]},
     "installable": True,
