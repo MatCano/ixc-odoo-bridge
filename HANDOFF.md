@@ -32,12 +32,14 @@
 ⚠️ O Odoo é **19 Community**, não 18 nem Enterprise. Isso importa para o escopo (ver §5).
 
 ### 🔴 Riscos de infraestrutura encontrados (09/11/2026)
-1. **Nenhum backup.** O banco roda como app comum (não como serviço Postgres do Easypanel), então não há
-   backup de banco; e não há backup de volume em nenhum serviço. Perda do servidor = perda de tudo.
-   **Primeira coisa a fazer:** backup de volume diário do `odoo-db` e do `odoo` (filestore) no Easypanel,
-   ou `pg_dump` agendado para um storage externo; testar uma restauração.
-2. **Bridge sem volume**: o estado do sync (`.ixc_sync_state.json`) some a cada deploy e força
-   re-varredura. Criar volume em `/app/data` antes do merge.
+1. **Backup** — ✅ *resolvido parcialmente em 09/11*: backup de volume diário às 2h configurado para
+   `odoo-db` (`/backups/maisfibra/odoo-db`) e `odoo` (`/backups/maisfibra/odoo-filestore`), primeiro backup
+   executado. ⚠️ O destino é **Local Disk (mesmo servidor)**: protege contra erro/deploy quebrado, não contra
+   perda do servidor. **Falta**: cadastrar storage externo (S3/B2) no Easypanel, apontar os backups para ele
+   e testar uma restauração. Backup de volume de Postgres em execução pode ficar inconsistente — o ideal é
+   somar um `pg_dump` diário (ou o backup do gerenciador de bancos do Odoo).
+2. **Bridge sem volume** — ✅ *resolvido em 09/11*: volume `bridge-data` em `/app/data` (vale a partir do
+   próximo deploy).
 3. A URL do gatilho de deploy do bridge contém token — não compartilhar fora da equipe.
 
 ---
@@ -109,8 +111,9 @@ estado do sync agora em volume e com limite; vínculo IXC↔Odoo por campos em v
    - Se o deploy do bridge vier **antes** do módulo: `MF_CAMPOS=0`.
 6. **Merge** de `integracao-bidirecional` → `main` (dispara o redeploy do bridge).
 7. Odoo > Definições > **MaisFibra**: URL interna do bridge + `BRIDGE_TOKEN`.
-8. Teste ponta a ponta com 1 lead real: Recolher Documentos → Negociação → marcar ganho no IXC.
-9. **WhatsApp** (opcional nesta etapa): subir Evolution, escanear QR, configurar em Definições > WhatsApp.
+8. Definições > MaisFibra > **Migrar agora** (vínculos antigos → campos novos).
+9. Teste ponta a ponta com 1 lead real: Recolher Documentos → Negociação → marcar ganho no IXC.
+10. **WhatsApp** (opcional nesta etapa): subir Evolution, escanear QR, configurar em Definições > WhatsApp.
 
 ---
 
@@ -123,11 +126,12 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 |---|---|---|
 | PostgreSQL | ✅ | `odoo-db` |
 | Ambientes Dev / Homolog / Prod | ❌ | Só produção. Contrato pede cloud (AWS/Azure/GCP) + VPN; hoje é VPS com Easypanel |
-| Backup diário, 30 dias | ❌ | **Nenhum backup** (banco como app comum, sem backup de volume) — prioridade 1 |
+| Backup diário, 30 dias | ⚠️ | Diário às 2h no disco local (09/11); falta storage externo e teste de restauração |
 | Auditoria de alterações | ❌ | Community não tem; usar módulo OCA `auditlog` ou desenvolver |
 | Política de governança / LGPD (assinada) | ❌ | |
 | Doc. de arquitetura / relatório de segurança | ⚠️ | §1 deste documento é o começo |
-| Jira/ClickUp, CI/CD | ❌ | Repositório sem GitHub Actions |
+| CI/CD | ⚠️ | GitHub Actions: testes do bridge e checagem dos módulos a cada push (deploy continua pelo Easypanel) |
+| Jira/ClickUp | ❓ | |
 
 ### Frente 1 — CRM + IXC
 | Item | Status | Nota |
@@ -147,10 +151,11 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | Item | Status | Nota |
 |---|---|---|
 | SMTP dedicado | ❌ | Precisa de conta (SendGrid etc.) |
-| E-mails automáticos (boas-vindas, cobrança, confirmação) | ❌ | Depende do SMTP |
+| E-mails automáticos (boas-vindas, confirmação) | 🟡 | 4 templates + automação por estágio, desligados até existir SMTP |
+| E-mails de cobrança | ❌ | Decisão pendente: o IXC já tem régua de cobrança (§7) |
 | Integração WhatsApp | 🟡 | `maisfibra_whatsapp` (Evolution) |
-| Disparos automáticos por evento | ❌ | Próximo passo no módulo |
-| Chatbot básico + tickets | ❌ | Helpdesk é Enterprise; escalar via atividade no CRM |
+| Disparos automáticos por evento | 🟡 | Boas-vindas a lead novo + mensagem por estágio (desligados por padrão) |
+| Chatbot básico + tickets | 🟡 | Menu 1/2/3; "contratar"/"atendente" cria atividade para o vendedor e pausa o bot |
 | Testes de entrega | ❌ | |
 
 ### Frente 3 — Financeiro
@@ -193,12 +198,14 @@ A confirmar na instalação da Mais Fibra:
 ## 8. Pendências técnicas (próximos passos sugeridos)
 
 1. Validar IXC (§6) e implantar (§4).
-2. Migrar `x_ID_IXC`/`x_codigo_cliente_ixc` → `mf_ixc_*` e arquivar os campos antigos.
+2. Após instalar o módulo: **Definições > MaisFibra > Migrar agora** (converte os vínculos que o bridge antigo
+   gravava como texto em ~3.000 leads para os campos `mf_*`). Os campos `x_ID_IXC`, `x_id_IXC`,
+   `x_status_ixc`, `x_viabilidade` e `x_codigo_cliente_ixc` estão **vazios** — podem ser removidos.
 3. Consulta de crédito (aguarda doc da "Central de consultas" do cliente).
 4. Mapear `indicado_por`, `id_concorrente`, `id_vendedor` para IDs do IXC (hoje vão em `obs`).
-5. WhatsApp: disparos por evento (novo lead, mudança de estágio) e chatbot com menu.
-6. SMTP + templates (boas-vindas, confirmações).
-7. Auditoria (OCA `auditlog`), CI no GitHub (testes do bridge), backups verificados.
+5. WhatsApp: escrever as mensagens nos estágios e ligar automações/chatbot depois de testar com 1 número.
+6. SMTP (SendGrid etc.) → ligar os e-mails automáticos e escolher o template em cada estágio.
+7. Auditoria (OCA `auditlog`), storage externo para backup + teste de restauração.
 8. Teste com 100+ clientes e relatório de testes (exigido no contrato).
 
 ---

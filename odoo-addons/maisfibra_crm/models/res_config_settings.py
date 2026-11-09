@@ -10,3 +10,6 @@ class ResConfigSettings(models.TransientModel):
                                           config_parameter="maisfibra_crm.email_boas_vindas")
     mf_email_estagio = fields.Boolean("E-mail de confirmação ao mudar de estágio",
                                       config_parameter="maisfibra_crm.email_estagio")
+
+    def action_mf_migrar(self):
+        return self.env["maisfibra.migracao"].action_migrar()

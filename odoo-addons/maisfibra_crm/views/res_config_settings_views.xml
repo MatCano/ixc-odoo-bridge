@@ -15,6 +15,11 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Migração">
+                        <setting string="Vínculos antigos com o IXC" help="Copia os IDs do IXC que o bridge antigo gravava como texto na descrição do lead e no contato para os campos novos. Não sobrescreve nada; pode rodar mais de uma vez.">
+                            <button name="action_mf_migrar" type="object" string="Migrar agora" class="btn-secondary" icon="fa-exchange"/>
+                        </setting>
+                    </block>
                     <block title="E-mails automáticos (ligar só depois de configurar o SMTP)">
                         <setting string="Boas-vindas" help="Para contato novo com e-mail. Nunca para contatos vindos do IXC. Template: MaisFibra: Boas-vindas.">
                             <field name="mf_email_boas_vindas"/>
