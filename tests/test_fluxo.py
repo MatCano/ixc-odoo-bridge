@@ -185,3 +185,22 @@ ok(r["status_servico"] == "Financeiro em atraso" and r["faturas_abertas"] == 2 a
 
 if FALHAS:
     raise SystemExit(f"{len(FALHAS)} teste(s) falharam")
+
+# 10) Alertas: falha avisa uma vez no canal, normalização avisa de novo
+import alertas  # noqa
+alertas.conexao = lambda: FAKE
+FAKE.posts.clear()
+alertas.falha("sincronismo lead", "IXC fora do ar")
+alertas.falha("sincronismo lead", "IXC fora do ar")   # repetida: não posta de novo
+alertas.ok("sincronismo lead")
+posts = [p for p in FAKE.posts if p[1] == "message_post"]
+canal = FAKE.search("discuss.channel", [["name", "=", "Integração IXC"]])
+ok(len(posts) == 2 and "⚠️" in posts[0][3]["body"] and "✅" in posts[1][3]["body"] and len(canal) == 1,
+   "alertas: falha avisada uma vez e normalização avisada no canal Integração IXC")
+FAKE.posts.clear()
+_orig = ixc.listar
+ixc.listar = lambda *a, **k: (_ for _ in ()).throw(ixc.IXCError("timeout"))
+sync.sync_leads()
+ixc.listar = _orig
+ok(any("não consegui ler o IXC" in (p[3] or {}).get("body", "") for p in FAKE.posts if p[1] == "message_post"),
+   "alertas: falha ao ler o IXC no ciclo gera alerta")

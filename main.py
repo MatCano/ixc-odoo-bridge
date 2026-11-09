@@ -22,6 +22,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
+import alertas
 import config
 import consulta_ixc
 import ixc
@@ -81,12 +82,15 @@ class OdooLead(BaseModel):
 # ======================================================================
 def _executar(func, payload, nome):
     try:
-        return func(payload.model_dump())
+        resultado = func(payload.model_dump())
+        alertas.ok(f"Odoo→IXC {nome}")
+        return resultado
     except ixc.IXCError as e:
         logger.warning(f"{nome} recusado: {e}")
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.exception(f"{nome} falhou")
+        alertas.falha(f"Odoo→IXC {nome}", f"lead Odoo #{payload.odoo_lead_id}: {str(e)[:300]}")
         raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
 
 
@@ -151,7 +155,7 @@ def webhook_novo_cliente(payload: LeadPayload, background_tasks: BackgroundTasks
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "mf_campos": config.MF_CAMPOS}
+    return {"status": "ok", "mf_campos": config.MF_CAMPOS, "alertas": alertas.resumo()}
 
 
 # ======================================================================

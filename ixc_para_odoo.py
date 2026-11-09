@@ -10,6 +10,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 
+import alertas
 import config
 import ixc
 from odoo import conexao, resetar_conexao
@@ -269,12 +270,14 @@ def sincronizar_fonte(tabela, campo_data, ns, processar, data_only, lookback, re
             watermark = (agora - delta).strftime(fmt)
             logger.info(f"{ns}: backfill desde {watermark}")
 
-        pagina, novos, max_data = 1, 0, watermark
+        pagina, novos, falhas, max_data = 1, 0, 0, watermark
+        erro_ixc = ""
         while True:
             try:
                 regs = ixc.listar(tabela, campo_data, watermark, oper=">=", pagina=pagina)
             except Exception as e:
                 logger.error(f"{ns}: falha ao listar {tabela}: {e}")
+                erro_ixc = str(e)[:300]
                 break
             for item in regs:
                 rid = str(item.get("id"))
@@ -286,15 +289,24 @@ def sincronizar_fonte(tabela, campo_data, ns, processar, data_only, lookback, re
                     if ts and not ts.startswith("0000") and ts > max_data:
                         max_data = ts
                     novos += 1
+                else:
+                    falhas += 1
             if len(regs) < config.PAGE_SIZE:
                 break
             pagina += 1
 
         max_data = min(max_data, agora_ref)
         salvar_estado(ns, max_data, set() if reprocessar else processados)
-        logger.info(f"{ns}: {novos} processados (watermark {max_data})")
+        logger.info(f"{ns}: {novos} processados, {falhas} falhas (watermark {max_data})")
+        if erro_ixc:
+            alertas.falha(f"sincronismo {ns}", f"não consegui ler o IXC ({tabela}): {erro_ixc}")
+        elif falhas:
+            alertas.falha(f"sincronismo {ns}", f"{falhas} registro(s) não foram gravados no Odoo neste ciclo")
+        else:
+            alertas.ok(f"sincronismo {ns}")
     except Exception as e:
         logger.error(f"Falha no ciclo {ns}: {e}")
+        alertas.falha(f"sincronismo {ns}", f"ciclo interrompido: {str(e)[:300]}")
 
 
 def sync_leads():
@@ -380,8 +392,10 @@ def sync_condominios():
             })
             n += 1
         logger.info(f"Condomínios sincronizados: {n}")
+        alertas.ok("condomínios")
     except Exception as e:
         logger.error(f"Falha ao sincronizar condomínios ({config.IXC_TB_CONDOMINIO}): {e}")
+        alertas.falha("condomínios", f"tabela {config.IXC_TB_CONDOMINIO}: {str(e)[:300]}")
         resetar_conexao()
 
 
@@ -399,6 +413,8 @@ def sync_planos():
             })
             n += 1
         logger.info(f"Planos sincronizados: {n}")
+        alertas.ok("planos")
     except Exception as e:
         logger.error(f"Falha ao sincronizar planos ({config.IXC_TB_PLANO}): {e}")
+        alertas.falha("planos", f"tabela {config.IXC_TB_PLANO}: {str(e)[:300]}")
         resetar_conexao()
