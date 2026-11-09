@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Boas-vindas (contato novo) -->
+    <record id="mail_tpl_boas_vindas" model="mail.template">
+        <field name="name">MaisFibra: Boas-vindas</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Bem-vindo(a) à Mais Fibra, {{ (object.name or '').split(' ')[0] }}!</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222">
+    <h2 style="color:#0b5ed7">Olá, <t t-out="(object.name or '').split(' ')[0]"/>! 👋</h2>
+    <p>Obrigado pelo contato com a <b>Mais Fibra</b>. Recebemos seus dados e um consultor vai falar com você em breve.</p>
+    <p><b>Próximos passos:</b></p>
+    <ol>
+        <li>Confirmamos a disponibilidade de fibra no seu endereço;</li>
+        <li>Apresentamos o plano ideal para você;</li>
+        <li>Agendamos a instalação.</li>
+    </ol>
+    <p>Qualquer dúvida, é só responder este e-mail.</p>
+    <p style="color:#666;font-size:12px">Equipe Mais Fibra</p>
+</div>
+        </field>
+    </record>
+
+    <!-- Confirmação de proposta -->
+    <record id="mail_tpl_proposta" model="mail.template">
+        <field name="name">MaisFibra: Confirmação de proposta</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="subject">Sua proposta Mais Fibra</field>
+        <field name="email_to">{{ object.email_from }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222">
+    <h2 style="color:#0b5ed7">Olá, <t t-out="(object.contact_name or object.partner_id.name or '').split(' ')[0]"/>!</h2>
+    <p>Conforme conversamos, segue o resumo da sua proposta:</p>
+    <table style="border-collapse:collapse;width:100%">
+        <tr t-if="object.mf_plano_id"><td style="padding:6px;border-bottom:1px solid #eee"><b>Plano</b></td><td style="padding:6px;border-bottom:1px solid #eee" t-out="object.mf_plano_id.name"/></tr>
+        <tr t-if="object.mf_descricao_produto"><td style="padding:6px;border-bottom:1px solid #eee"><b>Detalhes</b></td><td style="padding:6px;border-bottom:1px solid #eee" t-out="object.mf_descricao_produto"/></tr>
+        <tr t-if="object.mf_endereco"><td style="padding:6px;border-bottom:1px solid #eee"><b>Endereço de instalação</b></td><td style="padding:6px;border-bottom:1px solid #eee"><t t-out="object.mf_endereco"/>, <t t-out="object.mf_numero or 's/n'"/> <t t-out="object.mf_bloco and ('- Bloco ' + object.mf_bloco) or ''"/> <t t-out="object.mf_apartamento and ('Apto ' + object.mf_apartamento) or ''"/></td></tr>
+    </table>
+    <p>Seu consultor: <b t-out="object.user_id.name or 'Equipe Mais Fibra'"/>.</p>
+    <p>Para seguir, basta responder este e-mail ou falar com a gente pelo WhatsApp.</p>
+</div>
+        </field>
+    </record>
+
+    <!-- Confirmação de contratação -->
+    <record id="mail_tpl_contratacao" model="mail.template">
+        <field name="name">MaisFibra: Confirmação de contratação</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="subject">Contratação confirmada — bem-vindo(a) à Mais Fibra! 🎉</field>
+        <field name="email_to">{{ object.email_from }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222">
+    <h2 style="color:#198754">Tudo certo, <t t-out="(object.contact_name or object.partner_id.name or '').split(' ')[0]"/>! 🎉</h2>
+    <p>Sua contratação foi confirmada<t t-if="object.mf_plano_id"> no plano <b t-out="object.mf_plano_id.name"/></t>.</p>
+    <p><b>Próximo passo:</b> assinatura do contrato e agendamento da instalação. Nossa equipe vai entrar em contato para combinar o melhor horário.</p>
+    <p>Obrigado por escolher a Mais Fibra!</p>
+</div>
+        </field>
+    </record>
+
+    <!-- Confirmação de cancelamento / encerramento -->
+    <record id="mail_tpl_cancelamento" model="mail.template">
+        <field name="name">MaisFibra: Confirmação de cancelamento</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="subject">Confirmação do seu pedido de cancelamento</field>
+        <field name="email_to">{{ object.email_from }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222">
+    <p>Olá, <t t-out="(object.contact_name or object.partner_id.name or '').split(' ')[0]"/>.</p>
+    <p>Confirmamos o encerramento da sua solicitação junto à Mais Fibra.</p>
+    <p>Se mudar de ideia ou precisar de algo, estamos à disposição — é só responder este e-mail.</p>
+    <p style="color:#666;font-size:12px">Equipe Mais Fibra</p>
+</div>
+        </field>
+    </record>
+</odoo>
