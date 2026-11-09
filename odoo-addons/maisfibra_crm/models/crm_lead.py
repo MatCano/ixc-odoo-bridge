@@ -115,6 +115,8 @@ class CrmLead(models.Model):
             "indicado_por": self.mf_indicado_por_id.name or "",
             "concorrente": self.mf_concorrente or "",
             "vendedor": self.user_id.name or "",
+            "vendedor_ixc_id": self.user_id.mf_ixc_vendedor_id or "",
+            "funil_ixc_id": self.team_id.mf_ixc_funil_id or "",
             "condominio_ixc_id": c.ixc_id or "",
             "condominio": c.name or "",
             "bloco": self.mf_bloco or "",

@@ -15,7 +15,7 @@
     "author": "MaisFibra",
     "category": "Sales/CRM",
     "license": "LGPL-3",
-    "depends": ["base", "mail", "crm", "web"],
+    "depends": ["base", "mail", "crm", "web", "sales_team"],
     "data": [
         "security/ir.model.access.csv",
         "data/mail_templates.xml",
@@ -26,6 +26,7 @@
         "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
         "views/vendas_analise_views.xml",
+        "views/ixc_vinculos_views.xml",
         "report/report_vendedores.xml",
     ],
     "external_dependencies": {"python": ["requests"]},

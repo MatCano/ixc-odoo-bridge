@@ -57,6 +57,7 @@ def montar_cliente(d):
         "bloco": d.get("bloco", ""),
         "apartamento": d.get("apartamento", ""),
         "obs": _obs(d),
+        **({"id_vendedor": d["vendedor_ixc_id"]} if d.get("vendedor_ixc_id") else {}),
     }
 
 
@@ -111,6 +112,8 @@ def criar_negociacao(d):
         neg["id_plano"] = d["plano_ixc_id"]          # vd_contratos (plano de serviço)
     if d.get("canal_venda_ixc_id"):
         neg["id_canal_origem"] = d["canal_venda_ixc_id"]
+    if d.get("funil_ixc_id"):
+        neg["id_funil"] = d["funil_ixc_id"]          # funil do time no Odoo (PF/PJ)
     if d.get("valor_esperado"):
         neg["valor_mensal"] = str(d["valor_esperado"])
 

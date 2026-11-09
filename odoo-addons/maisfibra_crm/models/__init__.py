@@ -9,3 +9,4 @@ from . import res_config_settings
 from . import report_vendedor
 from . import email_auto
 from . import migracao
+from . import ixc_vinculos

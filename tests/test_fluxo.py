@@ -220,3 +220,10 @@ sync.processar_status_negociacao({"id": neg2, "id_cliente": cli_id, "status": "V
 ok(lead.get("stage_id") == 10, "negociação status V -> Aguardar Assinatura")
 sync.processar_status_negociacao({"id": neg2, "id_cliente": cli_id, "status": "D"})
 ok(lead.get("stage_id") == 11, "negociação status D -> Perdemos")
+
+# 13) Vendedor e funil do Odoo viram IDs no IXC
+DB["cliente"].clear(); DB["crm_negociacoes"].clear()
+cid = fluxo.virar_prospect(dict(payload, vendedor_ixc_id="12"))
+nid = fluxo.criar_negociacao(dict(payload, ixc_cliente_id=cid, funil_ixc_id="5", plano="X", descricao_produto="Y"))
+ok(DB["cliente"][cid].get("id_vendedor") == "12" and DB["crm_negociacoes"][nid]["id_funil"] == "5",
+   "vendedor -> id_vendedor no prospect; funil do time -> id_funil na negociação")

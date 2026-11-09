@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_team_form_mf_ixc" model="ir.ui.view">
+        <field name="name">crm.team.form.mf.ixc</field>
+        <field name="model">crm.team</field>
+        <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="mf_ixc_funil_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_users_form_mf_ixc" model="ir.ui.view">
+        <field name="name">res.users.form.mf.ixc</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="MaisFibra" name="mf_ixc">
+                    <group>
+                        <field name="mf_ixc_vendedor_id"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
