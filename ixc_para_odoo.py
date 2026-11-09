@@ -365,9 +365,10 @@ def processar_status_negociacao(neg):
     if not config.MF_CAMPOS:
         return True
     try:
-        if not _vazio(neg.get("data_vencemos")):
+        status = neg.get("status")  # validado: V = vencemos, D = perdemos, N = em andamento
+        if status == "V" or not _vazio(neg.get("data_vencemos")):
             codigo = "aguardando_assinatura"
-        elif not _vazio(neg.get("data_perdemos")):
+        elif status == "D" or not _vazio(neg.get("data_perdemos")):
             codigo = "perdemos"
         else:
             return True
@@ -452,11 +453,14 @@ def sync_planos():
     n = 0
     try:
         for r in ixc.listar_tudo(config.IXC_TB_PLANO):
-            nome = r.get("descricao") or r.get("nome") or r.get("plano")  # VALIDAR
+            nome = r.get("nome") or r.get("descricao")  # vd_contratos: nome do plano de serviço
             if not nome:
                 continue
+            valor = r.get("valor_contrato") or ""
             _upsert_por_ixc_id("maisfibra.plano", str(r["id"]), {
-                "name": nome, "active": r.get("ativo", "S") != "N",
+                "name": nome,
+                "descricao": f"{r.get('descricao') or ''} {('— R$ ' + valor) if valor else ''}".strip(),
+                "active": (r.get("Ativo") or r.get("ativo") or "S") != "N",
             })
             n += 1
         logger.info(f"Planos sincronizados: {n}")

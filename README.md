@@ -47,7 +47,7 @@ Se o IXC recusar algo, o Odoo **não muda o estágio** e mostra a mensagem do IX
 | `MF_CAMPOS` | `1` | `0` = modo antigo |
 | `SYNC_STATE_PATH` | `/app/data/ixc_sync_state.json` | precisa do volume |
 | `ALERTAS` / `ALERTA_CANAL` / `ALERTA_INTERVALO_MIN` | `1` / `Integração IXC` / `60` | alertas no Odoo Discuss |
-| `IXC_TB_CONDOMINIO` / `IXC_TB_NEGOCIACAO` / `IXC_TB_PLANO` | | **VALIDAR** |
+| `IXC_TB_CONDOMINIO` / `IXC_TB_NEGOCIACAO` / `IXC_TB_PLANO` | `cliente_condominio` / `crm_negociacoes` / `vd_contratos` | validados 09/11 |
 | `IXC_CLIENTE_DEFAULTS` | JSON | **VALIDAR** |
 | `IXC_PROSPECT_FIELDS` | `{"crm":"S","status_prospeccao":"P","ativo":"N"}` | **VALIDAR** |
 | `IXC_NEGOCIACAO_DEFAULTS` | JSON | **VALIDAR** |

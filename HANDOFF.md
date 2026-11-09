@@ -18,7 +18,8 @@
 | Alertas da integração | 🟡 No bridge novo: falhas aparecem no canal **Integração IXC** do Odoo (Discuss) — entre no canal para receber |
 | Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
 | Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
-| Validação do IXC e testes | ⏳ **Você**: HANDOFF §6 e `docs/PLANO_DE_TESTES.md` |
+| Validação do IXC | ✅ Feita (leitura) — ver §6; restam 4 conferências rápidas na tela |
+| Testes | ⏳ **Você**: `docs/PLANO_DE_TESTES.md` |
 
 Documentos: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) · [`docs/PLANO_DE_TESTES.md`](docs/PLANO_DE_TESTES.md) ·
 [`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
@@ -202,21 +203,28 @@ Base pronta no módulo `maisfibra_financeiro` (falta instalar) — só o que **n
 
 ---
 
-## 6. Validação no IXC (bloqueia o deploy do fluxo novo)
+## 6. Validação no IXC — ✅ feita em 09/11/2026 (scripts `scripts/validar_ixc*.py`, só leitura)
 
-Confirmado na API: `cliente`, `contato`, `cidade`, `cliente_contrato`, `fn_areceber`;
-inserir = POST, alterar = PUT com registro completo; prospect = `cliente` com
-`crm`, `status_prospeccao`, `id_condominio`, `bloco`, `apartamento`, `crm_data_*`.
+| Item | Resultado | Onde está no código |
+|---|---|---|
+| Tabela de condomínios | `cliente_condominio` (nome em `condominio`, cidade em `id_cidade`) | `config.IXC_TB_CONDOMINIO` |
+| Tabela de negociações | `crm_negociacoes` (4.714 registros) | `config.IXC_TB_NEGOCIACAO` |
+| Status da negociação | `N` em andamento · `V` ganha · `D` perdida (batem com `data_vencemos`/`data_perdemos`) | `odoo_para_ixc.STATUS_ABERTA`, `processar_status_negociacao` |
+| Ganho/perda | Ficam **na negociação**, não no cliente → bridge lê as duas | `sync_status_negociacoes` |
+| Prospect | `crm=S`, `status_prospeccao=P`, `ativo=S` | `config.IXC_PROSPECT_FIELDS` |
+| Defaults de cliente | filial 1, assinante 3, SCM `01`, pagamento `0`, localidade U | `config.IXC_CLIENTE_DEFAULTS` |
+| Planos | `id_plano` → `vd_contratos` (116 planos de serviço) | `config.IXC_TB_PLANO` |
+| Funil da negociação | `crm_funil`: CLIENTE PF, CLIENTE PJ, RENOVAÇÃO, Novos leads; 97% usam o **7** | `config.IXC_NEGOCIACAO_DEFAULTS` |
+| Endereço da negociação | 98% usam o do cliente (`considera_endereco_cliente=S`) | idem |
+| Canal de venda | `id_canal_origem` (cadastrar o ID do IXC em CRM > Configuração > Canais de venda) | `canal_venda_ixc_id` |
 
-A confirmar na instalação da Mais Fibra:
-1. Nome das tabelas de **Condomínios**, **Negociações** e **Planos de negociação** → `IXC_TB_*`.
-2. Campos da **negociação** (`odoo_para_ixc.criar_negociacao`).
-3. Código de **prospect** (`status_prospeccao`, `ativo`) → `IXC_PROSPECT_FIELDS`.
-4. Campos fixos de cliente (filial, tipo de cliente, tipo de assinante…) → `IXC_CLIENTE_DEFAULTS`.
-5. Códigos de status de contrato, internet e fatura (`consulta_ixc.py`).
-6. Permissões do usuário da API (inserir/alterar em cliente, contato, negociação).
-
----
+**Ainda conferir na tela do IXC (5 min):**
+1. Qual é o **plano de negociação 33** (CRM > Cadastros > Planos de negociações) — é o padrão usado
+   (`id_plano_negocio`), porque a tabela não é exposta pela API.
+2. Qual funil corresponde ao **id 7** e se leads PJ devem ir para outro funil.
+3. IDs dos **canais de venda** do IXC para preencher no Odoo.
+4. Permissão do usuário da API para **inserir/alterar** em `cliente`, `contato` e `crm_negociacoes`
+   (a validação só testou leitura).
 
 ## 7. Decisões pendentes (levar para Allnnect / cliente)
 

@@ -39,7 +39,7 @@ IXC_TB_CONTRATO = os.getenv("IXC_TB_CONTRATO", "cliente_contrato")  # confirmado
 IXC_TB_ARECEBER = os.getenv("IXC_TB_ARECEBER", "fn_areceber")       # confirmado
 IXC_TB_CONDOMINIO = os.getenv("IXC_TB_CONDOMINIO", "cliente_condominio")   # validado 09/11
 IXC_TB_NEGOCIACAO = os.getenv("IXC_TB_NEGOCIACAO", "crm_negociacoes")      # validado 09/11
-IXC_TB_PLANO = os.getenv("IXC_TB_PLANO", "crm_planos_negociacao")          # VALIDAR
+IXC_TB_PLANO = os.getenv("IXC_TB_PLANO", "vd_contratos")  # planos de serviço (id_plano da negociação), validado 09/11
 
 # Campos fixos exigidos pelo IXC ao inserir cliente/prospect (filial, tipo de cliente etc.).
 # VALIDAR: copie os valores de um prospect já cadastrado na MaisFibra.
@@ -58,8 +58,19 @@ IXC_PROSPECT_FIELDS = _json_env("IXC_PROSPECT_FIELDS", {
     "status_prospeccao": "P",
     "ativo": "S",
 })
-# Campos extras fixos da negociação (ex.: id do funil/etapa inicial no IXC). VALIDAR.
-IXC_NEGOCIACAO_DEFAULTS = _json_env("IXC_NEGOCIACAO_DEFAULTS", {})
+# Campos fixos da negociação — padrões observados nas 200 negociações mais recentes (09/11):
+# funil 7 em 97,5%, filial 1, prioridade M, origem "outros", endereço do cliente em 98%,
+# id_plano_negocio 33 em 55% (a tabela desse campo não é exposta pela API: CONFERIR no IXC
+# em CRM > Cadastros > Planos de negociações qual plano é o 33).
+IXC_NEGOCIACAO_DEFAULTS = _json_env("IXC_NEGOCIACAO_DEFAULTS", {
+    "status": "N",
+    "id_funil": "7",
+    "id_filial": "1",
+    "prioridade": "M",
+    "origem": "outros",
+    "considera_endereco_cliente": "S",
+    "id_plano_negocio": "33",
+})
 
 # ---------------- Segurança das rotas ----------------
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")   # formulários / OPA / Chatwoot

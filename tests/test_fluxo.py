@@ -204,3 +204,19 @@ sync.sync_leads()
 ixc.listar = _orig
 ok(any("não consegui ler o IXC" in (p[3] or {}).get("body", "") for p in FAKE.posts if p[1] == "message_post"),
    "alertas: falha ao ler o IXC no ciclo gera alerta")
+
+# 11) Negociação: reaproveita a aberta (status N) e usa os padrões validados
+neg2 = fluxo.criar_negociacao(dict(payload, ixc_cliente_id=cli_id, plano_ixc_id="186", canal_venda_ixc_id="2",
+                                   descricao_produto="600 Mega", plano="600 Mega"))
+n = DB["crm_negociacoes"][neg2]
+ok(neg2 == neg_id and len(DB["crm_negociacoes"]) == 1 and n["status"] == "N" and n["id_funil"] == "7"
+   and n["id_plano"] == "186" and n["id_canal_origem"] == "2" and n["id_contato"] == "7",
+   "negociação: reaproveita a aberta do cliente, com funil, plano e canal validados")
+
+# 12) Status V/D da negociação move o lead
+lead["stage_id"] = None
+FAKE.recs["crm.lead"][lead_id]["mf_ixc_negociacao_id"] = neg2
+sync.processar_status_negociacao({"id": neg2, "id_cliente": cli_id, "status": "V"})
+ok(lead.get("stage_id") == 10, "negociação status V -> Aguardar Assinatura")
+sync.processar_status_negociacao({"id": neg2, "id_cliente": cli_id, "status": "D"})
+ok(lead.get("stage_id") == 11, "negociação status D -> Perdemos")
