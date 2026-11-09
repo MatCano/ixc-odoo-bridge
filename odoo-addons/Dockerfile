@@ -17,4 +17,10 @@ RUN chown -R odoo:odoo /mnt/maisfibra-addons
 USER odoo
 
 # O entrypoint oficial continua injetando host/usuário/senha do banco.
-CMD ["odoo", "--addons-path=/mnt/extra-addons,/mnt/maisfibra-addons"]
+# Segurança:
+#   --no-database-list  desliga o gerenciador de bancos público (/web/database/manager),
+#                       por onde se pode baixar/duplicar/apagar o banco. Com um único banco,
+#                       o Odoo continua escolhendo-o automaticamente.
+#   --proxy-mode        o Odoo roda atrás do proxy HTTPS do Easypanel (IP real e https corretos).
+# Para backup/restauração use o Easypanel ou pg_dump (docs/OPERACAO.md), não o gerenciador web.
+CMD ["odoo", "--addons-path=/mnt/extra-addons,/mnt/maisfibra-addons", "--no-database-list", "--proxy-mode"]

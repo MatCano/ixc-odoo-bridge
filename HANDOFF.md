@@ -147,13 +147,16 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | Item | Status | Nota |
 |---|---|---|
 | PostgreSQL | ✅ | `odoo-db` |
-| Ambientes Dev / Homolog / Prod | ❌ | Só produção. Contrato pede cloud (AWS/Azure/GCP) + VPN; hoje é VPS com Easypanel |
-| Backup diário, 30 dias | ⚠️ | Diário às 2h no disco local (09/11); falta storage externo e teste de restauração |
-| Auditoria de alterações | 🟡 | `maisfibra_auditoria` (leads, contatos, faturas, estágios; somente leitura; 13 meses) — falta instalar |
-| Política de governança / LGPD (assinada) | 🟡 | Rascunho em `docs/GOVERNANCA_E_LGPD.md` — falta revisão e assinatura |
-| Doc. de arquitetura / relatório de segurança | 🟡 | `docs/ARQUITETURA.md` (inclui seção de segurança) |
-| CI/CD | ⚠️ | GitHub Actions: testes do bridge e checagem dos módulos a cada push (deploy continua pelo Easypanel) |
-| Jira/ClickUp | ❓ | |
+| Ambientes Dev / Homolog / Prod | 🟡 | Roteiro pronto em `docs/OPERACAO.md` §3 (homologação com cópia do banco); falta executar |
+| Backup diário, 30 dias | ⚠️ | Diário às 2h no disco local; roteiro de storage externo, pg_dump e teste de restauração em `docs/OPERACAO.md` |
+| Auditoria de alterações | 🟡 | `maisfibra_auditoria` pronto — falta instalar |
+| Política de governança / LGPD (assinada) | 🟡 | `docs/GOVERNANCA_E_LGPD.md` — falta DPO, revisão e assinatura |
+| Doc. de arquitetura | ✅ | `docs/ARQUITETURA.md` |
+| Relatório de segurança e conformidade | ✅ | Entregue **fora do repositório** (lista vulnerabilidades em aberto). Incluir aqui só depois de o repo ficar privado e os itens críticos corrigidos |
+| Endurecimento do Odoo | 🟢 | Gerenciador de bancos público desligado + proxy mode no `odoo-addons/Dockerfile` (vale no próximo deploy) |
+| Gestão do projeto (Jira/ClickUp) | 🟡 | Backlog com 27 itens, sprints e prazos até 30/11 em `docs/backlog_jira_clickup.csv` — importar no Jira ou ClickUp |
+| CI/CD | ⚠️ | CI (GitHub Actions) a cada push; deploy pelo Easypanel |
+| VPN para acesso administrativo | ❌ | Roteiro em `docs/OPERACAO.md` §4 |
 
 ### Frente 1 — CRM + IXC
 | Item | Status | Nota |
