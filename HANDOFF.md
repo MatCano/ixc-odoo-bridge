@@ -22,6 +22,7 @@
 | # | Passo | Tempo | Referência |
 |---|---|---|---|
 | 1 | Odoo > Definições > MaisFibra > **Migrar agora** (se ainda não rodou) | 1 min | §8 |
+| 1b | Easypanel > odoo > **Implantar** e, no Odoo, Apps > **Atualizar** `maisfibra_crm` e `maisfibra_whatsapp` (correções da revisão de 09/11: lead duplicado por mensagem de número desconhecido) | 5 min | commit "Revisão" |
 | 2 | Conferir na tela do IXC: plano de negociação 33, funil 7, IDs dos canais, permissão de escrita da API | 15 min | §6 |
 | 3 | **Bridge novo**: variáveis no Easypanel (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) → merge do **PR #2** → URL/token em Definições > MaisFibra | 15 min | PR #2 |
 | 4 | Testar **Consultar IXC** num cliente; ver o canal "Integração IXC" | 10 min | `docs/PLANO_DE_TESTES.md` S8 |

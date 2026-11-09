@@ -17,7 +17,7 @@
                         <h3>Performance de Vendedores</h3>
                         <p>
                             Período: <span t-field="o.data_inicio"/> a <span t-field="o.data_fim"/>
-                            <t t-if="o.team_ids"> · Funis: <span t-esc="', '.join(o.team_ids.mapped('name'))"/></t>
+                            <t t-if="o.team_ids"> · Funis: <span t-out="', '.join(o.team_ids.mapped('name'))"/></t>
                         </p>
                         <t t-set="rows" t-value="linhas[o.id]"/>
                         <table class="table table-sm o_main_table">
@@ -37,16 +37,16 @@
                             </thead>
                             <tbody>
                                 <tr t-foreach="rows" t-as="r">
-                                    <td t-esc="r['vendedor']"/>
-                                    <td class="text-end" t-esc="r['leads']"/>
-                                    <td class="text-end" t-esc="r['oportunidades']"/>
-                                    <td class="text-end" t-esc="r['ganhos']"/>
-                                    <td class="text-end" t-esc="r['perdidos']"/>
-                                    <td class="text-end" t-esc="r['abertos']"/>
-                                    <td class="text-end" t-esc="'%.1f%%' % r['conversao']"/>
-                                    <td class="text-end" t-esc="'R$ %.2f' % r['valor']"/>
-                                    <td class="text-end" t-esc="'R$ %.2f' % r['ticket']"/>
-                                    <td class="text-end" t-esc="'%.1f dias' % r['ciclo'] if r['ciclo'] is not None else '—'"/>
+                                    <td t-out="r['vendedor']"/>
+                                    <td class="text-end" t-out="r['leads']"/>
+                                    <td class="text-end" t-out="r['oportunidades']"/>
+                                    <td class="text-end" t-out="r['ganhos']"/>
+                                    <td class="text-end" t-out="r['perdidos']"/>
+                                    <td class="text-end" t-out="r['abertos']"/>
+                                    <td class="text-end" t-out="'%.1f%%' % r['conversao']"/>
+                                    <td class="text-end" t-out="'R$ %.2f' % r['valor']"/>
+                                    <td class="text-end" t-out="'R$ %.2f' % r['ticket']"/>
+                                    <td class="text-end" t-out="'%.1f dias' % r['ciclo'] if r['ciclo'] is not None else '—'"/>
                                 </tr>
                                 <tr t-if="not rows"><td colspan="10">Nenhum lead no período.</td></tr>
                             </tbody>

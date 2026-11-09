@@ -8,7 +8,7 @@
             <xpath expr="//header" position="inside">
                 <button name="action_mf_consultar_ixc" type="object" string="Consultar IXC" icon="fa-file-text-o"/>
                 <button name="action_mf_consultar_credito" type="object" string="Consultar crédito"
-                        icon="fa-search-dollar" invisible="not mf_cpf_cnpj"/>
+                        icon="fa-search" invisible="not mf_cpf_cnpj"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">

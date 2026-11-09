@@ -80,6 +80,13 @@ class WhatsappMessage(models.Model):
             )
             if lead:
                 return lead
+        # Sem contato cadastrado: procura lead aberto pelo telefone, senão cada mensagem
+        # de um número desconhecido criaria um lead novo.
+        provider = self.env["maisfibra.whatsapp.provider"]
+        for lead in Lead.search([("phone", "ilike", number[-8:]), ("stage_id.is_won", "=", False)],
+                                order="create_date desc", limit=10):
+            if provider.normalize_phone(lead.phone) == number:
+                return lead
         ICP = self.env["ir.config_parameter"].sudo()
         team_id = int(ICP.get_param("maisfibra_whatsapp.default_team_id") or 0)
         # reaproveita a origem "WhatsApp" que já existe no Odoo da MaisFibra
