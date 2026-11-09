@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  bridge:
+    name: Bridge (sintaxe + fluxo simulado)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Dependências
+        run: pip install -r requirements.txt
+      - name: Sintaxe
+        run: python -m compileall -q .
+      - name: Importa a API (rotas e agendador)
+        run: python -c "import main; print([r.path for r in main.app.routes])"
+      - name: Fluxo IXC <-> Odoo (IXC e Odoo simulados)
+        run: python tests/test_fluxo.py
+
+  odoo-addons:
+    name: Módulos Odoo (estrutura)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: XML válido
+        run: |
+          sudo apt-get install -y -qq libxml2-utils >/dev/null
+          find odoo-addons -name "*.xml" -print0 | xargs -0 -n1 xmllint --noout
+      - name: Python válido
+        run: python3 -m compileall -q odoo-addons
+      - name: Manifestos apontam para arquivos existentes
+        run: |
+          python3 - <<'EOF'
+          import ast, os, sys
+          erros = []
+          for mod in os.listdir("odoo-addons"):
+              man = os.path.join("odoo-addons", mod, "__manifest__.py")
+              if not os.path.isfile(man):
+                  continue
+              m = ast.literal_eval(open(man).read())
+              if not m["version"].startswith("19.0"):
+                  erros.append(f"{mod}: versão {m['version']} não é 19.0")
+              for f in m.get("data", []):
+                  if not os.path.isfile(os.path.join("odoo-addons", mod, f)):
+                      erros.append(f"{mod}: arquivo ausente {f}")
+          print("\n".join(erros) or "manifestos ok")
+          sys.exit(1 if erros else 0)
+          EOF
