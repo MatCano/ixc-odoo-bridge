@@ -58,7 +58,26 @@
 
 ---
 
-## 3. O que está pronto (código no branch, **não implantado**)
+## 0. Situação em 09/11/2026 (madrugada) — comece por aqui
+
+| Item | Situação |
+|---|---|
+| Backup diário (banco + arquivos) | ✅ Configurado e executado (disco local) |
+| Volume `/app/data` no bridge | ✅ Criado (vale no próximo deploy) |
+| Odoo com fonte GitHub (`integracao-bidirecional`, `/odoo-addons`) | ✅ Implantado |
+| `maisfibra_crm` e `maisfibra_whatsapp` | ✅ **Instalados em produção** e conferidos (telas, menus, relatórios). Nenhuma regra de estágio marcada → o Odoo ainda **não** chama o IXC. Automações desligadas |
+| `maisfibra_auditoria` | 🟡 No repositório; falta **Implantar** o odoo no Easypanel e instalar |
+| Migração dos vínculos antigos | ⏳ **Você**: Definições > MaisFibra > Migrar agora |
+| Bridge novo | ⏳ **Você**: variáveis (`BRIDGE_TOKEN`, `MF_CAMPOS=1`, `SYNC_STATE_PATH`) + merge na `main` + URL/token em Definições > MaisFibra |
+| Validação do IXC e testes | ⏳ **Você**: HANDOFF §6 e `docs/PLANO_DE_TESTES.md` |
+
+Documentos: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) · [`docs/PLANO_DE_TESTES.md`](docs/PLANO_DE_TESTES.md) ·
+[`docs/GOVERNANCA_E_LGPD.md`](docs/GOVERNANCA_E_LGPD.md) (rascunho para assinatura).
+
+⚠️ Dado importante: dos ~3.000 leads, só 2 estão como **ganhos** no Odoo (vendas fecham no IXC). As taxas de
+conversão do painel só ficam corretas depois que o bridge novo passar a trazer vencemos/perdemos.
+
+## 3. O que está pronto
 
 ### Bridge (`/`)
 | Função | Arquivo |
@@ -127,9 +146,9 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | PostgreSQL | ✅ | `odoo-db` |
 | Ambientes Dev / Homolog / Prod | ❌ | Só produção. Contrato pede cloud (AWS/Azure/GCP) + VPN; hoje é VPS com Easypanel |
 | Backup diário, 30 dias | ⚠️ | Diário às 2h no disco local (09/11); falta storage externo e teste de restauração |
-| Auditoria de alterações | ❌ | Community não tem; usar módulo OCA `auditlog` ou desenvolver |
-| Política de governança / LGPD (assinada) | ❌ | |
-| Doc. de arquitetura / relatório de segurança | ⚠️ | §1 deste documento é o começo |
+| Auditoria de alterações | 🟡 | `maisfibra_auditoria` (leads, contatos, faturas, estágios; somente leitura; 13 meses) — falta instalar |
+| Política de governança / LGPD (assinada) | 🟡 | Rascunho em `docs/GOVERNANCA_E_LGPD.md` — falta revisão e assinatura |
+| Doc. de arquitetura / relatório de segurança | 🟡 | `docs/ARQUITETURA.md` (inclui seção de segurança) |
 | CI/CD | ⚠️ | GitHub Actions: testes do bridge e checagem dos módulos a cada push (deploy continua pelo Easypanel) |
 | Jira/ClickUp | ❓ | |
 
@@ -142,7 +161,7 @@ Legenda: ✅ feito · 🟡 código pronto, falta implantar/validar · ⚠️ par
 | Middleware bidirecional (clientes) | 🟡 | Bridge v2 |
 | Dados financeiros em tempo real | 🟡 | Botão Consultar IXC |
 | Status de serviços | 🟡 | Idem (contrato + status da internet) |
-| Testes com 100+ clientes + relatório | ❌ | Fazer após o deploy |
+| Testes com 100+ clientes + relatório | 🟡 | Roteiro e modelo de relatório em `docs/PLANO_DE_TESTES.md` — falta executar |
 | Dashboards de vendas | 🟡 | Painel de Vendas |
 | Relatório de vendedores PDF/Excel | 🟡 | PDF no módulo; Excel pelo pivot |
 | Análise de leads | 🟡 | Filtros promissores/em risco |
@@ -205,7 +224,8 @@ A confirmar na instalação da Mais Fibra:
 4. Mapear `indicado_por`, `id_concorrente`, `id_vendedor` para IDs do IXC (hoje vão em `obs`).
 5. WhatsApp: escrever as mensagens nos estágios e ligar automações/chatbot depois de testar com 1 número.
 6. SMTP (SendGrid etc.) → ligar os e-mails automáticos e escolher o template em cada estágio.
-7. Auditoria (OCA `auditlog`), storage externo para backup + teste de restauração.
+7. Instalar `maisfibra_auditoria`; storage externo para backup + teste de restauração.
+8. Tornar o repositório **privado** (hoje é público) e cadastrar chave SSH no Easypanel.
 8. Teste com 100+ clientes e relatório de testes (exigido no contrato).
 
 ---
