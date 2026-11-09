@@ -83,13 +83,52 @@ class WhatsappProvider(models.AbstractModel):
             return ""
 
     # ------------------------------------------------------------------
-    # Meta Cloud API (a implementar quando a conta Meta estiver aprovada)
+    # Meta Cloud API (WhatsApp Business oficial)
     # ------------------------------------------------------------------
     @api.model
+    def _meta_post(self, payload):
+        token = self._param("meta_token")
+        phone_id = self._param("meta_phone_number_id")
+        versao = self._param("meta_api_version", "v21.0") or "v21.0"
+        if not (token and phone_id):
+            raise UserError(_("Configure o Phone Number ID e o token da Meta em Definições > WhatsApp."))
+        try:
+            resp = requests.post(
+                f"https://graph.facebook.com/{versao}/{phone_id}/messages",
+                json=payload, headers={"Authorization": f"Bearer {token}"}, timeout=20,
+            )
+        except requests.RequestException as e:
+            raise UserError(_("Falha de conexão com a Meta: %s", e)) from e
+        try:
+            data = resp.json()
+        except ValueError:
+            data = {}
+        if resp.status_code >= 300:
+            erro = (data.get("error") or {}).get("message") or resp.text[:300]
+            _logger.warning("Meta respondeu %s: %s", resp.status_code, erro)
+            if (data.get("error") or {}).get("code") == 131047:
+                erro = _("Fora da janela de 24h: a Meta só aceita mensagem de template aprovado. %s", erro)
+            raise UserError(_("Meta recusou o envio (%s): %s", resp.status_code, erro))
+        return ((data.get("messages") or [{}])[0]).get("id", "")
+
+    @api.model
     def _meta_send_text(self, number, text):
-        # TODO(handoff): POST https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages
-        #   headers: Authorization: Bearer {TOKEN}
-        #   json: {"messaging_product": "whatsapp", "to": number,
-        #          "type": "text", "text": {"body": text}}
-        # Atenção: fora da janela de 24h só é possível enviar TEMPLATES aprovados.
-        raise UserError(_("Provedor Meta ainda não implementado. Use Evolution."))
+        """Texto livre: só funciona até 24h após a última mensagem do cliente (regra da Meta)."""
+        return self._meta_post({
+            "messaging_product": "whatsapp", "recipient_type": "individual",
+            "to": number, "type": "text", "text": {"preview_url": True, "body": text},
+        })
+
+    @api.model
+    def send_template(self, phone, template, idioma="pt_BR", parametros=None):
+        """Mensagem de template aprovado na Meta (obrigatório para iniciar conversa / régua / CSAT).
+        Só existe na Meta; na Evolution levanta erro."""
+        if self._param("provider", "evolution") != "meta":
+            raise UserError(_("Templates só existem no provedor Meta."))
+        number = self.normalize_phone(phone)
+        corpo = [{"type": "text", "text": str(p)} for p in (parametros or [])]
+        componentes = [{"type": "body", "parameters": corpo}] if corpo else []
+        return self._meta_post({
+            "messaging_product": "whatsapp", "to": number, "type": "template",
+            "template": {"name": template, "language": {"code": idioma}, "components": componentes},
+        })

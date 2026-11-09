@@ -30,3 +30,11 @@ class ResConfigSettings(models.TransientModel):
     wa_bot_menu = fields.Char("Menu do chatbot (vazio = padrão)", config_parameter="maisfibra_whatsapp.bot_menu")
     wa_bot_pausa_horas = fields.Integer("Pausar o bot após atendimento humano (horas)", default=12,
                                         config_parameter="maisfibra_whatsapp.bot_pausa_horas")
+
+    wa_meta_phone_number_id = fields.Char("Phone Number ID (Meta)", config_parameter="maisfibra_whatsapp.meta_phone_number_id")
+    wa_meta_token = fields.Char("Token permanente (Meta)", config_parameter="maisfibra_whatsapp.meta_token")
+    wa_meta_verify_token = fields.Char("Verify token do webhook (Meta)", config_parameter="maisfibra_whatsapp.meta_verify_token")
+    wa_meta_app_secret = fields.Char("App secret (Meta)", config_parameter="maisfibra_whatsapp.meta_app_secret",
+                                     help="Usado para conferir a assinatura X-Hub-Signature-256 das mensagens recebidas.")
+    wa_meta_api_version = fields.Char("Versão da Graph API", default="v21.0",
+                                      config_parameter="maisfibra_whatsapp.meta_api_version")

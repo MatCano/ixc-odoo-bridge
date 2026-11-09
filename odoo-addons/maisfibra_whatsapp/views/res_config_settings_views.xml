@@ -21,6 +21,21 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Meta Cloud API (oficial)" invisible="wa_provider != 'meta'">
+                        <setting string="Conexão" help="Meta for Developers > seu app > WhatsApp > Configuração da API.">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="wa_meta_phone_number_id" class="col-lg-4 o_light_label"/><field name="wa_meta_phone_number_id"/></div>
+                                <div class="row"><label for="wa_meta_token" class="col-lg-4 o_light_label"/><field name="wa_meta_token" password="True"/></div>
+                                <div class="row"><label for="wa_meta_api_version" class="col-lg-4 o_light_label"/><field name="wa_meta_api_version"/></div>
+                            </div>
+                        </setting>
+                        <setting string="Webhook" help="Callback URL: https://SEU-ODOO/maisfibra/whatsapp/meta · campo: messages">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="wa_meta_verify_token" class="col-lg-4 o_light_label"/><field name="wa_meta_verify_token" password="True"/></div>
+                                <div class="row"><label for="wa_meta_app_secret" class="col-lg-4 o_light_label"/><field name="wa_meta_app_secret" password="True"/></div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Automações (desligadas por padrão)">
                         <setting string="Boas-vindas para lead novo" help="Não dispara para leads vindos do sincronismo com o IXC. Variáveis: {nome}, {vendedor}, {empresa}.">
                             <field name="wa_auto_boas_vindas"/>
