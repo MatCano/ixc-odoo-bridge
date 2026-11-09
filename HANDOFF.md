@@ -211,10 +211,10 @@ Base pronta no módulo `maisfibra_financeiro` (falta instalar) — só o que **n
 | Configuração fiscal (ICMS, ISS, PIS, COFINS, IR) | ❌ | Exige contador; no Community o l10n_br é limitado (avaliar OCA `l10n-brazil`) |
 | Contas a pagar + aprovação multinível | 🟡 | Gerente ≤ R$5 mil, Diretor ≤ R$20 mil, CFO acima (configurável); bloqueia lançamento sem aprovação; desligado por padrão |
 | Agendamento de pagamentos | 🟡 | Agenda (calendário) de vencimentos, próximos 7 dias, atrasados |
-| Relatórios: fluxo de caixa, DRE | 🟡 | Fluxo de caixa previsto e DRE gerencial (pivot, exporta Excel). Balanço patrimonial oficial: Enterprise ou OCA |
+| Relatórios: fluxo de caixa, DRE | 🟡 | Fluxo de caixa previsto e DRE gerencial (pivot, exporta Excel). Balanço oficial: OCA `account_financial_report`/`mis_builder` — confirmar versão 19 |
 | Contas a receber + fatura automática ao ganhar | ⏸️ | **Decisão**: duplicaria o IXC |
 | Workflow de cobrança | ⏸️ | **Decisão**: o IXC já tem régua de cobrança |
-| Conciliação bancária automática | ❌ | Community 19 não tem; OCA `account_reconcile_oca` ou Enterprise |
+| Conciliação bancária automática | ❌ | Community (decidido): OCA `account_reconcile_oca` — confirmar versão 19 |
 
 ---
 
@@ -243,9 +243,15 @@ Base pronta no módulo `maisfibra_financeiro` (falta instalar) — só o que **n
 
 ## 7. Decisões pendentes (levar para Allnnect / cliente)
 
-1. **Community × Enterprise.** O contrato descreve recursos que no Odoo são Enterprise
-   (conciliação bancária, DRE/Balanço, aprovações multinível, Helpdesk/chatbot com tickets, Studio).
-   No Community isso exige módulos OCA ou desenvolvimento — a **Frente 3 fica bem maior** que o cronograma.
+1. ✅ **Odoo Community — DECIDIDO (09/11).** Consequências:
+   - Aprovação multinível de contas a pagar: **já feita** no `maisfibra_financeiro` (sem Enterprise).
+   - Conciliação bancária: módulo OCA `account_reconcile_oca` (repo OCA/account-reconcile).
+   - Balanço/DRE oficiais: OCA `account_financial_report` ou `mis_builder` (repos OCA/account-financial-reporting, OCA/mis-builder);
+     a DRE gerencial do módulo próprio cobre o uso interno.
+   - Fiscal BR: OCA `l10n-brazil` (avaliar com o contador).
+   - Chatbot com tickets: atividade no CRM (pronto) ou OCA `helpdesk_mgmt` (OCA/helpdesk).
+   - **Antes de prometer qualquer item OCA, confirmar se já existe branch `19.0`** no repositório da OCA;
+     se não existir, o caminho é desenvolvimento próprio ou aguardar a migração.
 2. **Duplicidade com o IXC.** O IXC já é o financeiro do provedor e já tem régua de cobrança
    (campos `regua_cobranca_wpp`/`regua_cobranca_notificacao`). Decidir se o Odoo deve **refazer**
    cobrança/contas a receber ou apenas **mostrar** o que está no IXC (o que já foi implementado).
