@@ -8,10 +8,51 @@
             <xpath expr="//form" position="inside">
                 <app data-string="WhatsApp" string="WhatsApp" name="maisfibra_whatsapp">
                     <block title="Provedor">
-                        <setting string="Provedor de WhatsApp" help="Evolution agora; Meta quando a conta oficial for aprovada.">
+                        <setting string="Provedor de WhatsApp" help="WhatsApp Web via Chromium por usuário, ou Meta Cloud API oficial.">
                             <field name="wa_provider"/>
                         </setting>
                     </block>
+
+                    <!-- Conexão WhatsApp Web via Chromium -->
+                    <block title="WhatsApp Web via Chromium (Sessão Individual por Usuário)" invisible="wa_provider != 'chromium'">
+                        <setting string="Estado da Conexão" help="Cada usuário possui sua própria instância isolada do WhatsApp Web executada via Chromium.">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="wa_session_status_label" string="Status atual" class="col-lg-3 o_light_label font-weight-bold"/>
+                                    <div class="col-lg-9">
+                                        <field name="wa_session_status_label" readonly="1" class="font-weight-bold"/>
+                                    </div>
+                                </div>
+                                <div class="row mt4">
+                                    <label for="wa_session_phone" string="Telefone / Perfil" class="col-lg-3 o_light_label"/>
+                                    <div class="col-lg-9">
+                                        <field name="wa_session_phone" readonly="1" class="me-2"/>
+                                        <field name="wa_session_pushname" readonly="1"/>
+                                    </div>
+                                </div>
+
+                                <div class="mt16 mb16">
+                                    <field name="wa_session_qr_html" readonly="1" widget="html"/>
+                                </div>
+
+                                <div class="mt16">
+                                    <button name="action_start_whatsapp_session" string="Conectar / Gerar QR Code" type="object" class="btn btn-primary me-2"/>
+                                    <button name="action_disconnect_whatsapp_session" string="Desconectar" type="object" class="btn btn-secondary me-2"/>
+                                    <button name="action_sync_whatsapp_contacts" string="Sincronizar Contatos" type="object" class="btn btn-outline-primary me-2"/>
+                                    <button name="action_refresh_whatsapp_status" string="Atualizar Status" type="object" class="btn btn-link"/>
+                                </div>
+
+                                <div class="row mt16 pt16 border-top">
+                                    <label for="wa_chromium_url" string="URL do Serviço" class="col-lg-3 o_light_label"/>
+                                    <div class="col-lg-9">
+                                        <field name="wa_chromium_url"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Provedores legados / alternativos -->
                     <block title="Evolution API" invisible="wa_provider != 'evolution'">
                         <setting string="Conexão" help="Ex.: https://evolution.seudominio.com.br">
                             <div class="content-group">
@@ -36,6 +77,7 @@
                             </div>
                         </setting>
                     </block>
+
                     <block title="Automações (desligadas por padrão)">
                         <setting string="Boas-vindas para lead novo" help="Não dispara para leads vindos do sincronismo com o IXC. Variáveis: {nome}, {vendedor}, {empresa}.">
                             <field name="wa_auto_boas_vindas"/>
@@ -54,11 +96,12 @@
                             </div>
                         </setting>
                     </block>
+
                     <block title="Recebimento">
-                        <setting string="Webhook" help="Use em: /maisfibra/whatsapp/webhook?token=SEU_TOKEN">
+                        <setting string="Funil e Webhook" help="Configurações gerais de recebimento">
                             <div class="content-group">
-                                <div class="row mt8"><label for="wa_webhook_token" class="col-lg-4 o_light_label"/><field name="wa_webhook_token" password="True"/></div>
-                                <div class="row"><label for="wa_default_team_id" class="col-lg-4 o_light_label"/><field name="wa_default_team_id"/></div>
+                                <div class="row mt8"><label for="wa_default_team_id" class="col-lg-4 o_light_label"/><field name="wa_default_team_id"/></div>
+                                <div class="row"><label for="wa_webhook_token" class="col-lg-4 o_light_label"/><field name="wa_webhook_token" password="True"/></div>
                             </div>
                         </setting>
                     </block>
