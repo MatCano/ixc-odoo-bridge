@@ -114,7 +114,10 @@ class SessionManager {
         dataPath: this.sessionsDir
       }),
       authTimeoutMs: 120000,
-      userAgent: false,
+      // Chromium headless se identifica como "HeadlessChrome" e o WhatsApp Web recusa
+      // ("WhatsApp works with Google Chrome 100+"), entao o QR nunca aparece (auth timeout).
+      userAgent: process.env.WA_USER_AGENT ||
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36',
       puppeteer: {
         timeout: 120000,
         executablePath: this.chromeBin,
