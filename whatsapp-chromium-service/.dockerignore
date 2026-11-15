@@ -1,0 +1,5 @@
+node_modules
+test
+daemon.sh
+*.log
+.wwebjs_cache

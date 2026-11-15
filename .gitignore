@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 /data/
 .ixc_sync_state.json
+node_modules/
+.wwebjs_cache/
+*.log

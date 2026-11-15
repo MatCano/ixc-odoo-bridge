@@ -56,17 +56,24 @@ class WhatsappMessage(models.Model):
     # ------------------------------------------------------------------
     @api.model
     def _find_partner(self, number):
-        """Procura contato pelos últimos 8 dígitos e confirma pelo número normalizado."""
+        """Procura contato pelos últimos dígitos e confirma pelo número normalizado."""
         provider = self.env["maisfibra.whatsapp.provider"]
         Partner = self.env["res.partner"].sudo()
-        tail = number[-8:]
+        norm_number = provider.normalize_phone(number)
+        if not norm_number:
+            return Partner
+
+        # Usa os últimos 4 dígitos para busca inicial resiliente a formatações (+55 11 99123-0067 vs 5511991230067)
+        tail = norm_number[-4:] if len(norm_number) >= 4 else norm_number
         phone_fields = [f for f in ("phone", "mobile") if f in Partner._fields]
         domain = []
         for f in phone_fields:
             domain = (["|"] + domain if domain else []) + [(f, "ilike", tail)]
-        for partner in Partner.search(domain, limit=20):
+
+        for partner in Partner.search(domain, limit=50):
             for f in phone_fields:
-                if provider.normalize_phone(partner[f]) == number:
+                val = partner[f]
+                if val and provider.normalize_phone(val) == norm_number:
                     return partner
         return Partner
 
