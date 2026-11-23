@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_integracao_log_list" model="ir.ui.view">
+        <field name="name">maisfibra.integracao.log.list</field>
+        <field name="model">maisfibra.integracao.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-success="status == 'sucesso'" decoration-danger="status == 'falha'">
+                <field name="data_hora"/>
+                <field name="operacao"/>
+                <field name="direcao"/>
+                <field name="identificador_externo"/>
+                <field name="partner_id"/>
+                <field name="cobranca_id"/>
+                <field name="nota_fiscal_id"/>
+                <field name="duracao_ms"/>
+                <field name="status" widget="badge" decoration-success="status == 'sucesso'" decoration-danger="status == 'falha'" decoration-warning="status == 'aviso'"/>
+                <field name="motivo_falha"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_integracao_log_form" model="ir.ui.view">
+        <field name="name">maisfibra.integracao.log.form</field>
+        <field name="model">maisfibra.integracao.log</field>
+        <field name="arch" type="xml">
+            <form string="Log de Integração" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="data_hora"/>
+                            <field name="operacao"/>
+                            <field name="direcao"/>
+                            <field name="status"/>
+                            <field name="http_status"/>
+                            <field name="duracao_ms"/>
+                        </group>
+                        <group>
+                            <field name="identificador_externo"/>
+                            <field name="partner_id"/>
+                            <field name="cobranca_id"/>
+                            <field name="nota_fiscal_id"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <group string="Motivo da Falha" invisible="not motivo_falha"><field name="motivo_falha" nolabel="1"/></group>
+                    <group string="Payload (Sanitizado)"><field name="payload_resumo" nolabel="1"/></group>
+                    <group string="Resposta (Sanitizada)"><field name="resposta_resumo" nolabel="1"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_integracao_log_search" model="ir.ui.view">
+        <field name="name">maisfibra.integracao.log.search</field>
+        <field name="model">maisfibra.integracao.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="operacao"/>
+                <field name="identificador_externo"/>
+                <field name="partner_id"/>
+                <filter name="falhas" string="Somente Falhas" domain="[('status', '=', 'falha')]"/>
+                <filter name="sucessos" string="Sucessos" domain="[('status', '=', 'sucesso')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_integracao_logs" model="ir.actions.act_window">
+        <field name="name">Logs de Integração Financeira</field>
+        <field name="res_model">maisfibra.integracao.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

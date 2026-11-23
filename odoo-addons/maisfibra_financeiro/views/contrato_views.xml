@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_contrato_recorrente_list" model="ir.ui.view">
+        <field name="name">maisfibra.contrato.recorrente.list</field>
+        <field name="model">maisfibra.contrato.recorrente</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('suspenso', 'cancelado')">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="plano_nome"/>
+                <field name="valor_mensal"/>
+                <field name="dia_vencimento"/>
+                <field name="periodicidade"/>
+                <field name="consentimento_envio"/>
+                <field name="state" widget="badge" decoration-success="state == 'ativo'" decoration-warning="state == 'suspenso'" decoration-danger="state == 'cancelado'"/>
+                <field name="cobranca_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_contrato_recorrente_form" model="ir.ui.view">
+        <field name="name">maisfibra.contrato.recorrente.form</field>
+        <field name="model">maisfibra.contrato.recorrente</field>
+        <field name="arch" type="xml">
+            <form string="Contrato Recorrente">
+                <header>
+                    <button name="action_gerar_cobranca_competencia" string="Gerar Cobrança do Mês" type="object"
+                            class="btn-primary" invisible="state != 'ativo'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="rascunho,ativo,suspenso,cancelado" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_abrir_cobrancas" type="object" class="oe_stat_button" icon="fa-barcode">
+                            <field name="cobranca_count" widget="statinfo" string="Cobranças"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Dados do Contrato">
+                            <field name="partner_id"/>
+                            <field name="plano_nome"/>
+                            <field name="ixc_contrato_id"/>
+                            <field name="ixc_cliente_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Regras Financeiras e Envio">
+                            <field name="valor_mensal"/>
+                            <field name="dia_vencimento"/>
+                            <field name="periodicidade"/>
+                            <field name="data_inicio"/>
+                            <field name="data_fim"/>
+                            <field name="prorata_ativa"/>
+                            <field name="desconto_pontualidade"/>
+                            <field name="multa_percentual"/>
+                            <field name="juros_mensal_percentual"/>
+                            <field name="canal_envio"/>
+                            <field name="consentimento_envio"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Cobranças Geradas">
+                            <field name="cobranca_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="competencia"/>
+                                    <field name="data_vencimento"/>
+                                    <field name="valor_liquido"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'paga'" decoration-danger="state in ('vencida', 'falha')"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_contrato_recorrente_search" model="ir.ui.view">
+        <field name="name">maisfibra.contrato.recorrente.search</field>
+        <field name="model">maisfibra.contrato.recorrente</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="plano_nome"/>
+                <field name="ixc_contrato_id"/>
+                <filter name="ativos" string="Ativos" domain="[('state', '=', 'ativo')]"/>
+                <filter name="suspensos" string="Suspensos" domain="[('state', '=', 'suspenso')]"/>
+                <filter name="g_cliente" string="Cliente" context="{'group_by': 'partner_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_contratos_recorrentes" model="ir.actions.act_window">
+        <field name="name">Contratos Recorrentes</field>
+        <field name="res_model">maisfibra.contrato.recorrente</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_ativos': 1}</field>
+    </record>
+</odoo>

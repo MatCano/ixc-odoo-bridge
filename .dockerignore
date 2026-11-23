@@ -1,0 +1,10 @@
+.git
+.wwebjs_cache
+data
+whatsapp-chromium-service/node_modules
+whatsapp-chromium-service/.wwebjs_cache
+*.pdf
+*.docx
+__pycache__
+*.pyc
+*.log

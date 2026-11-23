@@ -18,6 +18,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
+import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -25,6 +26,7 @@ from pydantic import BaseModel
 import alertas
 import config
 import consulta_ixc
+import financeiro_ixc
 import ixc
 import ixc_para_odoo as sync
 import odoo_para_ixc as fluxo
@@ -132,6 +134,167 @@ def odoo_consulta_credito(payload: OdooLead, token: str = Header(None)):
     # TODO(handoff): implementar com a documentação de "Central de consultas (CPF|CNPJ)"
     # que o cliente possui. Retornar {"status": "aprovado"|"reprovado"|"pendente", "mensagem": "..."}.
     raise HTTPException(status_code=501, detail="Consulta de crédito ainda não implementada (aguardando documentação do IXC).")
+
+
+# ======================================================================
+# Financeiro: Boletos, Cobranças e Notas Fiscais (Odoo <-> IXC)
+# ======================================================================
+class FiltroFinanceiro(BaseModel):
+    ixc_cliente_id: str = ""
+    ixc_fatura_id: str = ""
+    data_inicio: str = ""
+    status: str = ""
+    pagina: int = 1
+    rp: int = 100
+
+
+class EmissaoBoletoPayload(BaseModel):
+    model_config = {"extra": "allow"}
+    id_cliente: str = ""
+    id_contrato: str = ""
+    competencia: str = ""
+    data_vencimento: str = ""
+    valor: float = 0.0
+    descricao: str = ""
+    banco_codigo: str = "756"
+
+
+class CancelamentoBoletoPayload(BaseModel):
+    identificador_externo: str
+    motivo: str = ""
+
+
+class EmissaoNFPayload(BaseModel):
+    model_config = {"extra": "allow"}
+    id_cliente: str = ""
+    id_areceber: str = ""
+    tipo_documento: str = "nfcom"
+    valor: float = 0.0
+
+
+class EventoFinanceiroWebhook(BaseModel):
+    model_config = {"extra": "allow"}
+    evento: str
+    identificador_externo: str
+    status: str = ""
+    valor_pago: float = 0.0
+    data_pagamento: str = ""
+    chave_acesso: str = ""
+    protocolo: str = ""
+
+
+@app.post("/odoo/financeiro/contratos")
+def odoo_fin_contratos(payload: FiltroFinanceiro, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        contratos = financeiro_ixc.listar_contratos_ativos(
+            ixc_cliente_id=payload.ixc_cliente_id, pagina=payload.pagina, rp=payload.rp
+        )
+        return {"contratos": contratos}
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro contratos IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/cobrancas/listar")
+def odoo_fin_cobrancas_listar(payload: FiltroFinanceiro, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        cobrancas = financeiro_ixc.listar_cobrancas_ixc(
+            ixc_cliente_id=payload.ixc_cliente_id,
+            data_inicio=payload.data_inicio,
+            status=payload.status,
+            rp=payload.rp,
+        )
+        return {"cobrancas": cobrancas}
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro listar cobrancas IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/boletos/emitir")
+def odoo_fin_boleto_emitir(payload: EmissaoBoletoPayload, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        res = financeiro_ixc.emitir_boleto_ixc(payload.model_dump())
+        alertas.ok("Odoo→IXC emitir_boleto")
+        return res
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro emitir boleto IXC falhou")
+        alertas.falha("Odoo→IXC emitir_boleto", str(e)[:250])
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/boletos/pdf")
+def odoo_fin_boleto_pdf(payload: FiltroFinanceiro, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        return financeiro_ixc.obter_pdf_boleto_ixc(payload.ixc_fatura_id)
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro obter pdf IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/boletos/cancelar")
+def odoo_fin_boleto_cancelar(payload: CancelamentoBoletoPayload, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        return financeiro_ixc.cancelar_boleto_ixc(payload.identificador_externo, payload.motivo)
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro cancelar boleto IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/notas-fiscais/listar")
+def odoo_fin_nf_listar(payload: FiltroFinanceiro, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        nfs = financeiro_ixc.consultar_notas_fiscais_ixc(
+            ixc_cliente_id=payload.ixc_cliente_id, ixc_fatura_id=payload.ixc_fatura_id, rp=payload.rp
+        )
+        return {"notas_fiscais": nfs}
+    except ixc.IXCError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.exception("financeiro listar NF IXC falhou")
+        raise HTTPException(status_code=502, detail=f"Falha falando com o IXC: {e}")
+
+
+@app.post("/odoo/financeiro/notas-fiscais/emitir")
+def odoo_fin_nf_emitir(payload: EmissaoNFPayload, token: str = Header(None)):
+    _auth(token, config.BRIDGE_TOKEN)
+    try:
+        return financeiro_ixc.emitir_nota_fiscal_ixc(payload.model_dump())
+    except Exception as e:
+        logger.exception("financeiro emitir NF IXC falhou")
+        return {"status": "indisponivel", "motivo_falha": f"Falha falando com o IXC: {e}"}
+
+
+@app.post("/webhook/financeiro/evento")
+def webhook_financeiro_evento(payload: EventoFinanceiroWebhook, token: str = Header(None)):
+    _auth(token, config.WEBHOOK_SECRET)
+    odoo_url = f"{config.ODOO_URL.rstrip('/')}/maisfibra/financeiro/webhook"
+    try:
+        r = requests.post(
+            odoo_url,
+            json=payload.model_dump(),
+            headers={"X-Webhook-Token": config.BRIDGE_TOKEN or config.WEBHOOK_SECRET, "Content-Type": "application/json"},
+            timeout=15,
+        )
+        return {"forwarded": r.status_code < 300, "odoo_status": r.status_code}
+    except Exception as e:
+        logger.warning("Falha ao repassar evento financeiro ao Odoo: %s", e)
+        return {"forwarded": False, "detail": str(e)[:200]}
 
 
 # ======================================================================

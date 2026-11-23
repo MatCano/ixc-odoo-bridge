@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cobranca_lote_wizard_form" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.lote.wizard.form</field>
+        <field name="model">maisfibra.cobranca.lote.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Gerar Cobranças em Lote">
+                <group>
+                    <field name="competencia" placeholder="Ex.: 2026-11"/>
+                    <field name="emitir_boletos"/>
+                    <field name="enviar_clientes"/>
+                </group>
+                <group string="Contratos Ativos (deixe padrão para todos os ativos)">
+                    <field name="contrato_ids" nolabel="1" widget="many2many_tags"/>
+                </group>
+                <footer>
+                    <button name="action_executar" string="Gerar Cobranças" type="object" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cobranca_lote_wizard" model="ir.actions.act_window">
+        <field name="name">Gerar Cobranças em Lote</field>
+        <field name="res_model">maisfibra.cobranca.lote.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_cobranca_pagamento_wizard_form" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.pagamento.wizard.form</field>
+        <field name="model">maisfibra.cobranca.pagamento.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Registrar Pagamento">
+                <group>
+                    <field name="cobranca_id" readonly="1"/>
+                    <field name="data_pagamento"/>
+                    <field name="valor_original"/>
+                    <field name="multa_calculada"/>
+                    <field name="juros_calculados"/>
+                    <field name="valor_pago"/>
+                </group>
+                <footer>
+                    <button name="action_confirmar" string="Confirmar Baixa" type="object" class="btn-primary"/>
+                    <button string="Fechar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cobranca_cancelar_wizard_form" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.cancelar.wizard.form</field>
+        <field name="model">maisfibra.cobranca.cancelar.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cancelar / Substituir">
+                <group>
+                    <field name="alvo" readonly="1"/>
+                    <field name="cobranca_id" readonly="1" invisible="alvo != 'cobranca'"/>
+                    <field name="nota_fiscal_id" readonly="1" invisible="alvo == 'cobranca'"/>
+                    <field name="novo_valor" invisible="alvo != 'nf_substituir'"/>
+                    <field name="motivo" placeholder="Informe a justificativa detalhada (mínimo 15 caracteres para cancelamento fiscal)..."/>
+                </group>
+                <footer>
+                    <button name="action_confirmar" string="Confirmar" type="object" class="btn-danger"/>
+                    <button string="Voltar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

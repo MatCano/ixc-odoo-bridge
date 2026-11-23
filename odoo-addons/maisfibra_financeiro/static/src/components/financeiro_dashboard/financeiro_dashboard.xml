@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="maisfibra_financeiro.FinanceiroDashboard">
+        <div class="mf_fin_dashboard o_action">
+            <div class="mf_fin_header">
+                <div>
+                    <h2 class="mb-1">Painel Financeiro &amp; Fiscal — Mais Fibra</h2>
+                    <div class="text-muted small">
+                        Arquitetura: <b t-esc="state.data.config?.arquitetura || '-'"/>
+                        · Fiscal: <b t-esc="state.data.config?.fiscal_ativo ? (state.data.config?.ambiente_fiscal || 'homologacao') : 'Desligado'"/>
+                    </div>
+                </div>
+                <div class="mf_fin_controls">
+                    <div class="input-group input-group-sm" style="width: 170px;">
+                        <input type="month" class="form-control" t-att-value="state.competencia === 'todas' ? '' : state.competencia" t-on-change="onChangeCompetencia"/>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" t-on-click="verTodasCompetencias">Todas</button>
+                    <button class="btn btn-sm btn-primary" t-on-click="abrirGerarLote"><i class="fa fa-bolt me-1"/>Gerar Lote</button>
+                    <button class="btn btn-sm btn-outline-primary" t-on-click="abrirNovaCobranca"><i class="fa fa-plus me-1"/>Nova Cobrança</button>
+                    <button class="btn btn-sm btn-outline-info" t-on-click="sincronizarIXC"><i class="fa fa-refresh me-1"/>Sincronizar IXC</button>
+                    <button class="btn btn-sm btn-outline-dark" title="Atualizar" t-on-click="() => this.carregarDados()"><i class="fa fa-refresh"/></button>
+                </div>
+            </div>
+
+            <div t-if="state.loading" class="text-center py-5 text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-2"/>
+                <div>Carregando indicadores financeiros...</div>
+            </div>
+
+            <div t-else="" class="mf_fin_body">
+                <!-- KPIs Principais -->
+                <div class="mf_kpi_grid">
+                    <div class="mf_kpi_card kpi_primary" t-on-click="() => this.abrirListaCobrancas([['state', 'in', ['criada', 'registrada', 'enviada']]], 'Cobranças a Receber')">
+                        <div class="kpi_label">A Receber</div>
+                        <div class="kpi_value" t-esc="formatBRL(state.data.kpis?.a_receber)"/>
+                        <div class="kpi_sub"><span t-esc="state.data.kpis?.enviadas || 0"/> enviadas ao cliente</div>
+                    </div>
+
+                    <div class="mf_kpi_card kpi_success" t-on-click="() => this.abrirListaCobrancas([['state', '=', 'paga']], 'Cobranças Pagas')">
+                        <div class="kpi_label">Recebido</div>
+                        <div class="kpi_value" t-esc="formatBRL(state.data.kpis?.recebido)"/>
+                        <div class="kpi_sub">Adimplência: <b t-esc="state.data.kpis?.taxa_adimplencia || 0"/>%</div>
+                    </div>
+
+                    <div class="mf_kpi_card kpi_danger" t-on-click="() => this.abrirListaCobrancas([['state', '=', 'vencida']], 'Cobranças Vencidas')">
+                        <div class="kpi_label">Vencido</div>
+                        <div class="kpi_value" t-esc="formatBRL(state.data.kpis?.vencido)"/>
+                        <div class="kpi_sub">Qtd. total no período: <span t-esc="state.data.kpis?.total_cobrancas || 0"/></div>
+                    </div>
+
+                    <div class="mf_kpi_card kpi_info" t-on-click="() => this.abrirNotasFiscais([])">
+                        <div class="kpi_label">Notas Fiscais</div>
+                        <div class="kpi_value" t-esc="state.data.kpis?.nfs_autorizadas || 0"/>
+                        <div class="kpi_sub">Rejeitadas / Indisp.: <b t-esc="state.data.kpis?.nfs_rejeitadas || 0"/></div>
+                    </div>
+
+                    <div class="mf_kpi_card kpi_warning" t-on-click="abrirFilaExcecoes">
+                        <div class="kpi_label">Exceções Pendentes</div>
+                        <div class="kpi_value" t-esc="state.data.kpis?.excecoes_pendentes || 0"/>
+                        <div class="kpi_sub">Clique para abrir a fila</div>
+                    </div>
+                </div>
+
+                <!-- Distribuição de Status + Exceções -->
+                <div class="mf_panels_row">
+                    <div class="mf_panel">
+                        <h5>Distribuição por Status</h5>
+                        <div class="mf_dist_list">
+                            <t t-foreach="Object.entries(state.data.distribuicao || {})" t-as="entry" t-key="entry[0]">
+                                <div class="mf_dist_item">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span t-esc="getLabelStatus(entry[0])"/>
+                                        <b t-esc="entry[1]"/>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div t-attf-class="progress-bar bg-#{getColorStatus(entry[0])}"
+                                             t-attf-style="width: #{getBarWidth(entry[1])}"/>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="mf_panel">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">Fila de Exceções Recentes</h5>
+                            <button class="btn btn-xs btn-link" t-on-click="abrirFilaExcecoes">Ver todas</button>
+                        </div>
+                        <div t-if="!(state.data.excecoes?.length)" class="text-muted small py-3">
+                            Nenhuma exceção pendente no momento.
+                        </div>
+                        <div t-else="" class="list-group list-group-flush">
+                            <t t-foreach="state.data.excecoes" t-as="exc" t-key="exc.id">
+                                <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <div class="fw-bold small"><t t-esc="exc.name"/> · <t t-esc="exc.partner_name"/></div>
+                                        <div class="text-danger small" t-esc="exc.motivo_erro"/>
+                                        <div class="text-muted" style="font-size: 11px;">Tentativas: <t t-esc="exc.tentativas"/>/<t t-esc="exc.max_tentativas"/></div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" t-on-click="() => this.reprocessarExcecao(exc.id)">Reprocessar</button>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Cobranças Recentes -->
+                <div class="mf_panel mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Cobranças Recentes</h5>
+                        <button class="btn btn-sm btn-link" t-on-click="() => this.abrirListaCobrancas([], 'Todas as Cobranças')">Abrir lista completa</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Cliente</th>
+                                    <th>Competência</th>
+                                    <th>Vencimento</th>
+                                    <th class="text-end">Valor</th>
+                                    <th>Status</th>
+                                    <th>NF</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="!(state.data.recentes?.length)">
+                                    <tr><td colspan="8" class="text-center text-muted py-3">Nenhuma cobrança nesta competência.</td></tr>
+                                </t>
+                                <t t-foreach="state.data.recentes || []" t-as="cob" t-key="cob.id">
+                                    <tr>
+                                        <td><a href="#" t-on-click.prevent="() => this.abrirCobranca(cob.id)" class="fw-bold" t-esc="cob.name"/></td>
+                                        <td t-esc="cob.partner_name"/>
+                                        <td t-esc="cob.competencia"/>
+                                        <td t-esc="cob.data_vencimento"/>
+                                        <td class="text-end fw-semibold" t-esc="formatBRL(cob.valor_liquido)"/>
+                                        <td><span t-attf-class="badge text-bg-#{getColorStatus(cob.state)}" t-esc="getLabelStatus(cob.state)"/></td>
+                                        <td><span t-if="cob.nf_status" class="badge text-bg-light" t-esc="cob.nf_status"/><span t-else="">-</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary me-1" t-on-click="() => this.abrirCobranca(cob.id)">Abrir</button>
+                                            <a t-if="cob.link_pagamento" t-att-href="cob.link_pagamento" target="_blank" class="btn btn-sm btn-outline-primary">Portal</a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

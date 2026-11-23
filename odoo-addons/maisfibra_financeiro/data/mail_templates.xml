@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_tpl_boleto_cobranca" model="mail.template">
+        <field name="name">MaisFibra: Boleto de Cobrança</field>
+        <field name="model_id" ref="model_maisfibra_cobranca"/>
+        <field name="subject">Sua fatura Mais Fibra - Ref. {{ object.competencia }} ({{ object.name }})</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#1f2937;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+    <div style="background:#0b3b8c;color:#ffffff;padding:18px 24px">
+        <h2 style="margin:0;font-size:18px">Mais Fibra — Fatura e Boleto Bancário</h2>
+    </div>
+    <div style="padding:20px 24px">
+        <p>Olá, <b t-out="object.partner_id.name"/>!</p>
+        <p>Segue em anexo o boleto referente à competência <b t-out="object.competencia"/> (<t t-out="object.descricao or object.name"/>).</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:6px">
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Documento</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb" t-out="object.name"/></tr>
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Vencimento</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb" t-out="object.data_vencimento"/></tr>
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Valor</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>R$ <t t-out="'%.2f' % (object.valor_liquido or object.valor_original)"/></b></td></tr>
+            <tr t-if="object.linha_digitavel"><td style="padding:8px 12px"><b>Linha Digitável</b></td><td style="padding:8px 12px;font-family:monospace;font-size:13px" t-out="object.linha_digitavel"/></tr>
+        </table>
+        <p t-if="object.link_pagamento" style="text-align:center;margin:20px 0">
+            <a t-att-href="object.link_pagamento" style="background:#0b5ed7;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold">Acessar Boleto / 2ª Via Online</a>
+        </p>
+        <p style="font-size:12px;color:#6b7280">Caso já tenha efetuado o pagamento, desconsidere este aviso.</p>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_tpl_nota_fiscal" model="mail.template">
+        <field name="name">MaisFibra: Nota Fiscal Eletrônica</field>
+        <field name="model_id" ref="model_maisfibra_nota_fiscal"/>
+        <field name="subject">Nota Fiscal Nº {{ object.numero }} — Mais Fibra</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#1f2937;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+    <div style="background:#14532d;color:#ffffff;padding:18px 24px">
+        <h2 style="margin:0;font-size:18px">Mais Fibra — Documento Fiscal Autorizado</h2>
+    </div>
+    <div style="padding:20px 24px">
+        <p>Olá, <b t-out="object.partner_id.name"/>!</p>
+        <p>Sua Nota Fiscal referente aos serviços contratados foi autorizada e segue anexa (PDF e XML).</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb">
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Número / Série</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><t t-out="object.numero"/> / <t t-out="object.serie"/></td></tr>
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Protocolo</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb" t-out="object.protocolo_autorizacao"/></tr>
+            <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><b>Chave de Acesso</b></td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:12px" t-out="object.chave_acesso"/></tr>
+            <tr><td style="padding:8px 12px"><b>Valor Total</b></td><td style="padding:8px 12px"><b>R$ <t t-out="'%.2f' % object.valor_total"/></b></td></tr>
+        </table>
+    </div>
+</div>
+        </field>
+    </record>
+</odoo>

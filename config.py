@@ -40,6 +40,8 @@ IXC_TB_ARECEBER = os.getenv("IXC_TB_ARECEBER", "fn_areceber")       # confirmado
 IXC_TB_CONDOMINIO = os.getenv("IXC_TB_CONDOMINIO", "cliente_condominio")   # validado 09/11
 IXC_TB_NEGOCIACAO = os.getenv("IXC_TB_NEGOCIACAO", "crm_negociacoes")      # validado 09/11
 IXC_TB_PLANO = os.getenv("IXC_TB_PLANO", "vd_contratos")  # planos de serviço (id_plano da negociação), validado 09/11
+IXC_TB_NF = os.getenv("IXC_TB_NF", "vd_saida")            # notas fiscais de saída (NFCom / NFS-e)
+IXC_BOLETO_ENDPOINT = os.getenv("IXC_BOLETO_ENDPOINT", "get_boleto")
 
 # Campos fixos exigidos pelo IXC ao inserir cliente/prospect (filial, tipo de cliente etc.).
 # VALIDAR: copie os valores de um prospect já cadastrado na MaisFibra.
@@ -86,6 +88,7 @@ FUNIL_ODOO = {
 # ---------------- Polling ----------------
 POLL_INTERVAL_MINUTES = int(os.getenv("POLL_INTERVAL_MINUTES", "2"))
 CADASTROS_INTERVAL_MINUTES = int(os.getenv("CADASTROS_INTERVAL_MINUTES", "60"))
+FINANCEIRO_SYNC_MINUTES = int(os.getenv("FINANCEIRO_SYNC_MINUTES", "15"))
 DELTA_LOOKBACK_HOURS = int(os.getenv("DELTA_LOOKBACK_HOURS", "48"))
 DELTA_LOOKBACK_DAYS = int(os.getenv("DELTA_LOOKBACK_DAYS", "7"))
 PAGE_SIZE = int(os.getenv("PAGE_SIZE", "100"))

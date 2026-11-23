@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cobranca_list" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.list</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state in ('vencida', 'falha')" decoration-success="state == 'paga'" decoration-muted="state == 'cancelada'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="contrato_id" optional="show"/>
+                <field name="competencia"/>
+                <field name="data_vencimento"/>
+                <field name="valor_liquido" sum="Total"/>
+                <field name="valor_pago" sum="Total Pago" optional="show"/>
+                <field name="nosso_numero" optional="show"/>
+                <field name="enviada_cliente"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paga'"
+                       decoration-info="state in ('registrada', 'enviada')"
+                       decoration-danger="state in ('vencida', 'falha')"
+                       decoration-warning="state == 'criada'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cobranca_kanban" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.kanban</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" sample="1">
+                <field name="state"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <field name="name" class="fw-bold"/>
+                            <field name="valor_liquido" widget="monetary"/>
+                        </div>
+                        <field name="partner_id" class="text-truncate"/>
+                        <div class="text-muted small">
+                            Ref.: <field name="competencia"/> · Venc.: <field name="data_vencimento"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_cobranca_form" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.form</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <form string="Cobrança / Boleto">
+                <header>
+                    <button name="action_emitir_boleto" string="Emitir Boleto" type="object" class="btn-primary"
+                            invisible="state not in ('criada', 'falha')"/>
+                    <button name="action_reenviar_manual" string="Enviar / Reenviar ao Cliente" type="object" class="btn-secondary"
+                            invisible="state in ('criada', 'cancelada', 'falha')"/>
+                    <button name="action_abrir_wizard_pagamento" string="Registrar Pagamento" type="object" class="btn-success"
+                            invisible="state in ('paga', 'cancelada')"/>
+                    <button name="action_abrir_segunda_via_form" string="Gerar 2ª Via" type="object"
+                            invisible="state in ('paga', 'cancelada', 'criada')"/>
+                    <button name="action_emitir_nota_fiscal" string="Emitir Nota Fiscal" type="object"
+                            invisible="state in ('cancelada', 'falha')"/>
+                    <button name="action_reprocessar" string="Reprocessar" type="object" class="btn-warning"
+                            invisible="state != 'falha'"/>
+                    <button name="action_abrir_wizard_cancelar" string="Cancelar Cobrança" type="object" class="btn-danger"
+                            groups="maisfibra_financeiro.group_gestor_financeiro"
+                            invisible="state in ('paga', 'cancelada')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="criada,registrada,enviada,paga,vencida,cancelada"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Paga" bg_color="text-bg-success" invisible="state != 'paga'"/>
+                    <widget name="web_ribbon" title="Vencida" bg_color="text-bg-danger" invisible="state != 'vencida'"/>
+                    <widget name="web_ribbon" title="Cancelada" bg_color="text-bg-secondary" invisible="state != 'cancelada'"/>
+                    <div class="alert alert-danger mb-2" role="alert" invisible="state != 'falha'">
+                        <b>Falha na integração:</b> <field name="ultimo_erro" readonly="1"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificação">
+                            <field name="partner_id"/>
+                            <field name="contrato_id"/>
+                            <field name="competencia"/>
+                            <field name="descricao"/>
+                            <field name="origem_emissao"/>
+                            <field name="numero_via"/>
+                            <field name="cobranca_origem_id" invisible="not cobranca_origem_id"/>
+                        </group>
+                        <group string="Datas e Valores">
+                            <field name="data_emissao"/>
+                            <field name="data_vencimento"/>
+                            <field name="data_pagamento" invisible="not data_pagamento"/>
+                            <field name="valor_original"/>
+                            <field name="valor_desconto"/>
+                            <field name="valor_multa"/>
+                            <field name="valor_juros"/>
+                            <field name="valor_liquido" class="fw-bold"/>
+                            <field name="valor_pago" invisible="not valor_pago"/>
+                        </group>
+                    </group>
+                    <group string="Dados do Boleto e Pagamento">
+                        <group>
+                            <field name="identificador_externo"/>
+                            <field name="nosso_numero"/>
+                            <field name="linha_digitavel" widget="CopyClipboardChar"/>
+                            <field name="link_pagamento" widget="CopyClipboardChar"/>
+                        </group>
+                        <group>
+                            <field name="codigo_barras"/>
+                            <field name="pix_copia_cola"/>
+                            <field name="enviada_cliente"/>
+                            <field name="ultimo_envio_em"/>
+                            <field name="motivo_cancelamento" invisible="not motivo_cancelamento"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="PDF do Boleto">
+                            <group>
+                                <field name="boleto_pdf_filename" invisible="1"/>
+                                <field name="boleto_pdf" filename="boleto_pdf_filename" widget="pdf_viewer"/>
+                            </group>
+                        </page>
+                        <page string="Envios (E-mail / WhatsApp)">
+                            <field name="envio_ids" readonly="1">
+                                <list>
+                                    <field name="data_envio"/>
+                                    <field name="canal"/>
+                                    <field name="tipo_disparo"/>
+                                    <field name="destinatario"/>
+                                    <field name="status" widget="badge" decoration-success="status == 'sucesso'" decoration-danger="status == 'falha'"/>
+                                    <field name="mensagem_erro"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas Fiscais">
+                            <field name="nota_fiscal_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="tipo_documento"/>
+                                    <field name="numero"/>
+                                    <field name="chave_acesso"/>
+                                    <field name="valor_total"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'autorizada'" decoration-danger="state in ('rejeitada', 'indisponivel')"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Exceções">
+                            <field name="excecao_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="tipo"/>
+                                    <field name="tentativas"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="motivo_erro"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Logs de Integração">
+                            <field name="log_ids" readonly="1">
+                                <list>
+                                    <field name="data_hora"/>
+                                    <field name="operacao"/>
+                                    <field name="status" widget="badge" decoration-success="status == 'sucesso'" decoration-danger="status == 'falha'"/>
+                                    <field name="motivo_falha"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cobranca_pivot" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.pivot</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <pivot string="Análise de Cobranças">
+                <field name="competencia" type="col"/>
+                <field name="state" type="row"/>
+                <field name="valor_liquido" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_cobranca_graph" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.graph</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <graph string="Cobranças por Status" type="bar">
+                <field name="competencia"/>
+                <field name="state"/>
+                <field name="valor_liquido" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_cobranca_calendar" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.calendar</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <calendar string="Vencimentos de Boletos" date_start="data_vencimento" color="state" mode="month">
+                <field name="partner_id"/>
+                <field name="valor_liquido"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_cobranca_search" model="ir.ui.view">
+        <field name="name">maisfibra.cobranca.search</field>
+        <field name="model">maisfibra.cobranca</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="competencia"/>
+                <field name="nosso_numero"/>
+                <field name="identificador_externo"/>
+                <filter name="abertas" string="Em Aberto" domain="[('state', 'in', ('criada', 'registrada', 'enviada'))]"/>
+                <filter name="vencidas" string="Vencidas" domain="[('state', '=', 'vencida')]"/>
+                <filter name="pagas" string="Pagas" domain="[('state', '=', 'paga')]"/>
+                <filter name="falhas" string="Com Falha" domain="[('state', '=', 'falha')]"/>
+                <separator/>
+                <filter name="g_status" string="Status" context="{'group_by': 'state'}"/>
+                <filter name="g_comp" string="Competência" context="{'group_by': 'competencia'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cobrancas" model="ir.actions.act_window">
+        <field name="name">Boletos e Cobranças</field>
+        <field name="res_model">maisfibra.cobranca</field>
+        <field name="view_mode">list,kanban,form,calendar,pivot,graph</field>
+    </record>
+</odoo>

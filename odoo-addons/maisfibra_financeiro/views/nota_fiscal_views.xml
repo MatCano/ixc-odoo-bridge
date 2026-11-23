@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_nota_fiscal_list" model="ir.ui.view">
+        <field name="name">maisfibra.nota.fiscal.list</field>
+        <field name="model">maisfibra.nota.fiscal</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'autorizada'" decoration-danger="state in ('rejeitada', 'indisponivel')" decoration-muted="state in ('cancelada', 'substituida')">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="cobranca_id"/>
+                <field name="tipo_documento"/>
+                <field name="ambiente"/>
+                <field name="numero"/>
+                <field name="serie"/>
+                <field name="valor_total" sum="Total"/>
+                <field name="data_emissao"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'autorizada'"
+                       decoration-danger="state in ('rejeitada', 'indisponivel')"
+                       decoration-warning="state == 'em_processamento'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_nota_fiscal_kanban" model="ir.ui.view">
+        <field name="name">maisfibra.nota.fiscal.kanban</field>
+        <field name="model">maisfibra.nota.fiscal</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" sample="1">
+                <field name="state"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <field name="name" class="fw-bold"/>
+                            <field name="valor_total" widget="monetary"/>
+                        </div>
+                        <field name="partner_id"/>
+                        <div class="text-muted small">
+                            <field name="tipo_documento"/> · Nº <field name="numero"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_nota_fiscal_form" model="ir.ui.view">
+        <field name="name">maisfibra.nota.fiscal.form</field>
+        <field name="model">maisfibra.nota.fiscal</field>
+        <field name="arch" type="xml">
+            <form string="Nota Fiscal">
+                <header>
+                    <button name="action_emitir" string="Emitir / Transmitir" type="object" class="btn-primary"
+                            invisible="state in ('autorizada', 'cancelada', 'substituida')"/>
+                    <button name="action_enviar_cliente" string="Enviar ao Cliente" type="object" class="btn-secondary"
+                            invisible="state != 'autorizada'"/>
+                    <button name="action_abrir_wizard_substituir" string="Substituir NF" type="object"
+                            groups="maisfibra_financeiro.group_gestor_financeiro"
+                            invisible="state != 'autorizada'"/>
+                    <button name="action_abrir_wizard_cancelar" string="Cancelar NF" type="object" class="btn-danger"
+                            groups="maisfibra_financeiro.group_gestor_financeiro"
+                            invisible="state != 'autorizada'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="rascunho,em_processamento,autorizada,rejeitada,cancelada,substituida"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Autorizada" bg_color="text-bg-success" invisible="state != 'autorizada'"/>
+                    <widget name="web_ribbon" title="Rejeitada" bg_color="text-bg-danger" invisible="state not in ('rejeitada', 'indisponivel')"/>
+                    <div class="alert alert-danger mb-2" role="alert" invisible="state not in ('rejeitada', 'indisponivel')">
+                        <b>Motivo:</b> <field name="motivo_rejeicao" readonly="1"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificação Fiscal">
+                            <field name="partner_id"/>
+                            <field name="cobranca_id"/>
+                            <field name="contrato_id"/>
+                            <field name="tipo_documento"/>
+                            <field name="origem_emissao"/>
+                            <field name="ambiente"/>
+                        </group>
+                        <group string="Autorização e Valores">
+                            <field name="numero"/>
+                            <field name="serie"/>
+                            <field name="protocolo_autorizacao"/>
+                            <field name="chave_acesso" widget="CopyClipboardChar"/>
+                            <field name="data_emissao"/>
+                            <field name="valor_total"/>
+                            <field name="aliquota_iss" invisible="tipo_documento != 'nfse'"/>
+                            <field name="valor_iss" invisible="tipo_documento != 'nfse'"/>
+                            <field name="aliquota_icms" invisible="tipo_documento != 'nfcom'"/>
+                            <field name="valor_icms" invisible="tipo_documento != 'nfcom'"/>
+                            <field name="nf_substituida_id" invisible="not nf_substituida_id"/>
+                            <field name="motivo_cancelamento" invisible="not motivo_cancelamento"/>
+                        </group>
+                    </group>
+                    <group string="Serviços">
+                        <field name="descricao_servico" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="DANFE / PDF">
+                            <group>
+                                <field name="pdf_filename" invisible="1"/>
+                                <field name="pdf_arquivo" filename="pdf_filename" widget="pdf_viewer"/>
+                            </group>
+                        </page>
+                        <page string="XML Autorizado">
+                            <group>
+                                <field name="xml_filename"/>
+                                <field name="xml_arquivo" filename="xml_filename"/>
+                            </group>
+                        </page>
+                        <page string="Logs">
+                            <field name="log_ids" readonly="1">
+                                <list>
+                                    <field name="data_hora"/>
+                                    <field name="operacao"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="motivo_falha"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_nota_fiscal_search" model="ir.ui.view">
+        <field name="name">maisfibra.nota.fiscal.search</field>
+        <field name="model">maisfibra.nota.fiscal</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="numero"/>
+                <field name="chave_acesso"/>
+                <filter name="autorizadas" string="Autorizadas" domain="[('state', '=', 'autorizada')]"/>
+                <filter name="rejeitadas" string="Rejeitadas / Indisponíveis" domain="[('state', 'in', ('rejeitada', 'indisponivel'))]"/>
+                <filter name="g_tipo" string="Tipo Documento" context="{'group_by': 'tipo_documento'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_notas_fiscais" model="ir.actions.act_window">
+        <field name="name">Notas Fiscais (NFCom / NFS-e)</field>
+        <field name="res_model">maisfibra.nota.fiscal</field>
+        <field name="view_mode">list,kanban,form</field>
+    </record>
+</odoo>

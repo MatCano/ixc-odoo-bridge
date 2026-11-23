@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_view_form_mf_financeiro" model="ir.ui.view">
+        <field name="name">res.partner.form.maisfibra.financeiro</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_abrir_mf_contratos" type="object" class="oe_stat_button" icon="fa-repeat">
+                    <field name="mf_contrato_count" widget="statinfo" string="Contratos MF"/>
+                </button>
+                <button name="action_abrir_mf_cobrancas" type="object" class="oe_stat_button" icon="fa-barcode">
+                    <field name="mf_cobranca_count" widget="statinfo" string="Boletos MF"/>
+                </button>
+                <button name="action_abrir_mf_notas_fiscais" type="object" class="oe_stat_button" icon="fa-file-code-o">
+                    <field name="mf_nf_count" widget="statinfo" string="Notas Fiscais"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Boletos &amp; Notas Fiscais" name="mf_boletos_nf">
+                    <group>
+                        <field name="mf_cobranca_vencida_count" decoration-danger="mf_cobranca_vencida_count &gt; 0"/>
+                    </group>
+                    <separator string="Cobranças / Boletos Recentes"/>
+                    <field name="mf_cobranca_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="competencia"/>
+                            <field name="data_vencimento"/>
+                            <field name="valor_liquido"/>
+                            <field name="state" widget="badge" decoration-success="state == 'paga'" decoration-danger="state in ('vencida', 'falha')" decoration-info="state in ('registrada', 'enviada')"/>
+                            <field name="linha_digitavel"/>
+                        </list>
+                    </field>
+                    <separator string="Notas Fiscais"/>
+                    <field name="mf_nota_fiscal_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="tipo_documento"/>
+                            <field name="numero"/>
+                            <field name="valor_total"/>
+                            <field name="state" widget="badge" decoration-success="state == 'autorizada'" decoration-danger="state in ('rejeitada', 'indisponivel')"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

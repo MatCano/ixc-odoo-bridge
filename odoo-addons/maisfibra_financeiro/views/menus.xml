@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_mf_financeiro_dashboard" model="ir.actions.client">
+        <field name="name">Painel Financeiro MaisFibra</field>
+        <field name="tag">maisfibra_financeiro.dashboard</field>
+    </record>
+
+    <record id="action_mf_financeiro_config" model="ir.actions.act_window">
+        <field name="name">Parâmetros Financeiros</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'maisfibra_crm', 'bin_size': False}</field>
+    </record>
+
+    <!-- Aplicativo raiz no menu lateral (App Switcher) -->
+    <menuitem id="menu_mf_financeiro_app_root"
+              name="Financeiro MaisFibra"
+              web_icon="maisfibra_financeiro,static/description/icon.png"
+              sequence="56"/>
+
+    <menuitem id="menu_mf_app_dashboard"
+              name="Painel"
+              parent="menu_mf_financeiro_app_root"
+              action="action_mf_financeiro_dashboard"
+              sequence="5"/>
+
+    <menuitem id="menu_mf_app_cobrancas_grp"
+              name="Cobranças"
+              parent="menu_mf_financeiro_app_root"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_app_cobrancas"
+              name="Boletos e Cobranças"
+              parent="menu_mf_app_cobrancas_grp"
+              action="action_cobrancas"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_app_contratos"
+              name="Contratos Recorrentes"
+              parent="menu_mf_app_cobrancas_grp"
+              action="action_contratos_recorrentes"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_app_gerar_lote"
+              name="Gerar Cobranças em Lote"
+              parent="menu_mf_app_cobrancas_grp"
+              action="action_cobranca_lote_wizard"
+              sequence="30"/>
+
+    <menuitem id="menu_mf_app_notas_fiscais"
+              name="Notas Fiscais"
+              parent="menu_mf_financeiro_app_root"
+              action="action_notas_fiscais"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_app_pagar_grp"
+              name="Contas a Pagar"
+              parent="menu_mf_financeiro_app_root"
+              sequence="30"/>
+
+    <menuitem id="menu_mf_app_contas_aprovar"
+              name="Contas a Aprovar"
+              parent="menu_mf_app_pagar_grp"
+              action="action_contas_aprovar"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_app_agenda_pagamentos"
+              name="Agenda de Pagamentos"
+              parent="menu_mf_app_pagar_grp"
+              action="action_agenda_pagamentos"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_app_relatorios_grp"
+              name="Relatórios"
+              parent="menu_mf_financeiro_app_root"
+              sequence="40"/>
+
+    <menuitem id="menu_mf_app_fluxo_caixa"
+              name="Fluxo de Caixa Previsto"
+              parent="menu_mf_app_relatorios_grp"
+              action="action_fluxo_caixa"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_app_dre"
+              name="DRE Gerencial"
+              parent="menu_mf_app_relatorios_grp"
+              action="action_dre"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_app_operacoes_grp"
+              name="Operações &amp; Logs"
+              parent="menu_mf_financeiro_app_root"
+              sequence="50"/>
+
+    <menuitem id="menu_mf_app_envios"
+              name="Histórico de Envios"
+              parent="menu_mf_app_operacoes_grp"
+              action="action_cobranca_envios"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_app_fila_excecoes"
+              name="Fila de Exceções"
+              parent="menu_mf_app_operacoes_grp"
+              action="action_fila_excecoes"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_app_integracao_logs"
+              name="Logs de Integração"
+              parent="menu_mf_app_operacoes_grp"
+              action="action_integracao_logs"
+              sequence="30"/>
+
+    <menuitem id="menu_mf_app_config_grp"
+              name="Configuração"
+              parent="menu_mf_financeiro_app_root"
+              sequence="90"
+              groups="base.group_system"/>
+
+    <menuitem id="menu_mf_app_config_parametros"
+              name="Parâmetros Financeiros"
+              parent="menu_mf_app_config_grp"
+              action="action_mf_financeiro_config"
+              sequence="10"
+              groups="base.group_system"/>
+
+    <!-- Atalho integrado dentro de Faturamento -->
+    <menuitem id="menu_mf_cobrancas_hub"
+              name="Cobranças &amp; Fiscal"
+              parent="account.menu_finance"
+              sequence="15"/>
+
+    <menuitem id="menu_mf_fin_dashboard"
+              name="Painel Financeiro"
+              parent="menu_mf_cobrancas_hub"
+              action="action_mf_financeiro_dashboard"
+              sequence="5"/>
+
+    <menuitem id="menu_mf_cobrancas"
+              name="Boletos e Cobranças"
+              parent="menu_mf_cobrancas_hub"
+              action="action_cobrancas"
+              sequence="10"/>
+
+    <menuitem id="menu_mf_contratos"
+              name="Contratos Recorrentes"
+              parent="menu_mf_cobrancas_hub"
+              action="action_contratos_recorrentes"
+              sequence="20"/>
+
+    <menuitem id="menu_mf_notas_fiscais"
+              name="Notas Fiscais (NFCom / NFS-e)"
+              parent="menu_mf_cobrancas_hub"
+              action="action_notas_fiscais"
+              sequence="30"/>
+
+    <menuitem id="menu_mf_gerar_lote"
+              name="Gerar Cobranças em Lote"
+              parent="menu_mf_cobrancas_hub"
+              action="action_cobranca_lote_wizard"
+              sequence="40"/>
+
+    <menuitem id="menu_mf_envios"
+              name="Histórico de Envios"
+              parent="menu_mf_cobrancas_hub"
+              action="action_cobranca_envios"
+              sequence="50"/>
+
+    <menuitem id="menu_mf_fila_excecoes"
+              name="Fila de Exceções"
+              parent="menu_mf_cobrancas_hub"
+              action="action_fila_excecoes"
+              sequence="60"/>
+
+    <menuitem id="menu_mf_integracao_logs"
+              name="Logs de Integração"
+              parent="menu_mf_cobrancas_hub"
+              action="action_integracao_logs"
+              sequence="70"/>
+</odoo>

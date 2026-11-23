@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_mf_contrato" model="ir.sequence">
+        <field name="name">Contrato Recorrente MaisFibra</field>
+        <field name="code">maisfibra.contrato.recorrente</field>
+        <field name="prefix">CTR/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_mf_cobranca" model="ir.sequence">
+        <field name="name">Cobrança MaisFibra</field>
+        <field name="code">maisfibra.cobranca</field>
+        <field name="prefix">COB/%(year)s/</field>
+        <field name="padding">6</field>
+    </record>
+    <record id="seq_mf_nota_fiscal" model="ir.sequence">
+        <field name="name">Nota Fiscal MaisFibra</field>
+        <field name="code">maisfibra.nota.fiscal</field>
+        <field name="prefix">NF/%(year)s/</field>
+        <field name="padding">6</field>
+    </record>
+    <record id="seq_mf_fila_excecao" model="ir.sequence">
+        <field name="name">Fila Exceção MaisFibra</field>
+        <field name="code">maisfibra.fila.excecao</field>
+        <field name="prefix">EXC/%(year)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

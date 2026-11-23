@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_cobranca_nf" model="ir.ui.view">
+        <field name="name">res.config.settings.form.cobranca.nf</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="maisfibra_crm.res_config_settings_view_form_mf"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='maisfibra_crm']" position="inside">
+                <block title="Financeiro: Boletos, Cobranças Recorrentes e Notas Fiscais">
+                    <setting string="Arquitetura &amp; Sistemas Mestres" help="Define a responsabilidade operacional entre Odoo, IXC e Emissor Fiscal.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_arquitetura_cobranca" class="col-lg-4 o_light_label"/><field name="mf_arquitetura_cobranca"/></div>
+                            <div class="row"><label for="mf_sistema_mestre_cobranca" class="col-lg-4 o_light_label"/><field name="mf_sistema_mestre_cobranca"/></div>
+                            <div class="row"><label for="mf_sistema_mestre_fiscal" class="col-lg-4 o_light_label"/><field name="mf_sistema_mestre_fiscal"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Carteira Bancária / PIX (Emissão Odoo / Homologação)" help="Dados utilizados para geração FEBRABAN e PDF bancário no Odoo.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_banco_codigo" class="col-lg-4 o_light_label"/><field name="mf_banco_codigo"/></div>
+                            <div class="row"><label for="mf_banco_nome" class="col-lg-4 o_light_label"/><field name="mf_banco_nome"/></div>
+                            <div class="row"><label for="mf_banco_agencia" class="col-lg-4 o_light_label"/><field name="mf_banco_agencia"/></div>
+                            <div class="row"><label for="mf_banco_conta" class="col-lg-4 o_light_label"/><field name="mf_banco_conta"/></div>
+                            <div class="row"><label for="mf_banco_carteira" class="col-lg-4 o_light_label"/><field name="mf_banco_carteira"/></div>
+                            <div class="row"><label for="mf_pix_chave" class="col-lg-4 o_light_label"/><field name="mf_pix_chave"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Regras de Cobrança &amp; Automação">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_multa_percentual" class="col-lg-4 o_light_label"/><field name="mf_multa_percentual"/></div>
+                            <div class="row"><label for="mf_juros_mensal_percentual" class="col-lg-4 o_light_label"/><field name="mf_juros_mensal_percentual"/></div>
+                            <div class="row"><label for="mf_dias_segunda_via" class="col-lg-4 o_light_label"/><field name="mf_dias_segunda_via"/></div>
+                            <div class="row"><label for="mf_geracao_automatica_ativa" class="col-lg-4 o_light_label"/><field name="mf_geracao_automatica_ativa"/></div>
+                            <div class="row"><label for="mf_emissao_automatica_ativa" class="col-lg-4 o_light_label"/><field name="mf_emissao_automatica_ativa"/></div>
+                            <div class="row"><label for="mf_vincular_account_move" class="col-lg-4 o_light_label"/><field name="mf_vincular_account_move"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Envio Automático (E-mail / WhatsApp)">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_canal_envio_padrao" class="col-lg-4 o_light_label"/><field name="mf_canal_envio_padrao"/></div>
+                            <div class="row"><label for="mf_envio_automatico_ativo" class="col-lg-4 o_light_label"/><field name="mf_envio_automatico_ativo"/></div>
+                            <div class="row"><label for="mf_envio_nf_automatico" class="col-lg-4 o_light_label"/><field name="mf_envio_nf_automatico"/></div>
+                            <div class="row"><label for="mf_remetente_email" class="col-lg-4 o_light_label"/><field name="mf_remetente_email"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Configuração Fiscal (NFCom / NFS-e)" help="Produção exige confirmação prévia da validação com a contabilidade.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_fiscal_ativo" class="col-lg-4 o_light_label"/><field name="mf_fiscal_ativo"/></div>
+                            <div class="row"><label for="mf_fiscal_tipo_padrao" class="col-lg-4 o_light_label"/><field name="mf_fiscal_tipo_padrao"/></div>
+                            <div class="row"><label for="mf_fiscal_ambiente" class="col-lg-4 o_light_label"/><field name="mf_fiscal_ambiente"/></div>
+                            <div class="row"><label for="mf_fiscal_fato_gerador" class="col-lg-4 o_light_label"/><field name="mf_fiscal_fato_gerador"/></div>
+                            <div class="row"><label for="mf_validacao_contabil_confirmada" class="col-lg-4 o_light_label"/><field name="mf_validacao_contabil_confirmada"/></div>
+                            <div class="row"><label for="mf_aliquota_iss" class="col-lg-4 o_light_label"/><field name="mf_aliquota_iss"/></div>
+                            <div class="row"><label for="mf_aliquota_icms" class="col-lg-4 o_light_label"/><field name="mf_aliquota_icms"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Sincronização, Retentativas &amp; Webhook">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="mf_sync_ixc_ativa" class="col-lg-4 o_light_label"/><field name="mf_sync_ixc_ativa"/></div>
+                            <div class="row"><label for="mf_max_retentativas" class="col-lg-4 o_light_label"/><field name="mf_max_retentativas"/></div>
+                            <div class="row"><label for="mf_webhook_token" class="col-lg-4 o_light_label"/><field name="mf_webhook_token" password="True"/></div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

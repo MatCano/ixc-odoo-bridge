@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cron_mf_atualizar_vencidas" model="ir.cron">
+        <field name="name">MaisFibra: marcar cobranças vencidas</field>
+        <field name="model_id" ref="model_maisfibra_cobranca"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_atualizar_vencidas()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_mf_gerar_cobrancas_mensais" model="ir.cron">
+        <field name="name">MaisFibra: gerar cobranças recorrentes mensais</field>
+        <field name="model_id" ref="model_maisfibra_contrato_recorrente"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_gerar_cobrancas_mensais()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_mf_sincronizar_ixc" model="ir.cron">
+        <field name="name">MaisFibra: sincronizar cobranças e baixas do IXC</field>
+        <field name="model_id" ref="model_maisfibra_cobranca"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sincronizar_ixc()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_mf_reprocessar_excecoes" model="ir.cron">
+        <field name="name">MaisFibra: reprocessar fila de exceções</field>
+        <field name="model_id" ref="model_maisfibra_fila_excecao"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_reprocessar_fila()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>
