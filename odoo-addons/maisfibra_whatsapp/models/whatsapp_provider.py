@@ -45,6 +45,43 @@ class WhatsappProvider(models.AbstractModel):
             _logger.warning("Falha ao abrir banco SQLite local de WhatsApp: %s", e)
             return None
 
+    @api.model
+    def get_phone_aliases(self, norm_phone):
+        """Retorna números e LIDs (apenas dígitos) associados ao telefone no SQLite."""
+        aliases = set()
+        digits = re.sub(r"\D", "", norm_phone or "")
+        if not digits:
+            return aliases
+        aliases.add(digits)
+        conn = self._get_sqlite_conn()
+        if not conn:
+            return aliases
+        try:
+            cur = conn.cursor()
+            tail = digits[-8:] if len(digits) >= 8 else digits
+            cur.execute(
+                """
+                SELECT jid, number, lid FROM whatsapp_contacts
+                WHERE number LIKE ? OR jid LIKE ? OR lid LIKE ?
+                LIMIT 20
+                """,
+                (f"%{tail}%", f"%{tail}%", f"%{tail}%"),
+            )
+            for row in cur.fetchall():
+                row_vals = [re.sub(r"\D", "", v or "") for v in row]
+                if any(v == digits or (len(tail) >= 8 and v.endswith(tail)) for v in row_vals if v):
+                    for val in row_vals:
+                        if val:
+                            aliases.add(val)
+                            norm_val = self.normalize_phone(val)
+                            if norm_val:
+                                aliases.add(norm_val)
+        except Exception as exc:
+            _logger.debug("WhatsApp SQLite alias lookup falhou: %s", exc)
+        finally:
+            conn.close()
+        return aliases
+
     # ------------------------------------------------------------------
     # API pública de envio
     # ------------------------------------------------------------------
@@ -85,11 +122,11 @@ class WhatsappProvider(models.AbstractModel):
         return (self._param("chromium_url") or DEFAULT_CHROMIUM_URL).rstrip("/")
 
     @api.model
-    def get_user_session_status(self, user_id=None):
+    def get_user_session_status(self, user_id=None, timeout=5):
         uid = user_id or self.env.user.id
         url = f"{self._chromium_url()}/api/session/{uid}/status"
         try:
-            resp = requests.get(url, timeout=5)
+            resp = requests.get(url, timeout=timeout)
             if resp.status_code == 200:
                 return resp.json()
         except requests.RequestException as e:
@@ -144,75 +181,13 @@ class WhatsappProvider(models.AbstractModel):
 
     @api.model
     def sync_user_contacts(self, user_id=None):
-        uid = user_id or self.env.user.id
-        url = f"{self._chromium_url()}/api/session/{uid}/sync-contacts"
-        contacts = []
-        try:
-            resp = requests.post(url, timeout=15)
-            if resp.status_code == 200:
-                contacts = resp.json()
-        except requests.RequestException as e:
-            _logger.warning("Falha ao chamar sync-contacts via HTTP: %s", e)
-
-        if not contacts:
-            conn = self._get_sqlite_conn()
-            if conn:
-                try:
-                    cur = conn.cursor()
-                    cur.execute(
-                        "SELECT jid, number, name, push_name, unread_count FROM whatsapp_contacts WHERE user_id = ?",
-                        (f"user_{uid}",)
-                    )
-                    rows = cur.fetchall()
-                    contacts = [
-                        {"jid": r[0], "number": r[1], "name": r[2], "push_name": r[3], "unread_count": r[4]}
-                        for r in rows
-                    ]
-                finally:
-                    conn.close()
-
-        # Garante que cada contato exista como res.partner e tenha canal direto no Discuss
-        user = self.env["res.users"].browse(uid)
-        Partner = self.env["res.partner"].sudo()
-        Channel = self.env["discuss.channel"].sudo()
-
-        saved_contacts = []
-        for c in contacts:
-            jid = c.get("jid") or ""
-            # Ignora grupos, status e newsletters
-            if "@g.us" in jid or "@newsletter" in jid or "status@broadcast" in jid:
-                continue
-
-            number = self.normalize_phone(c.get("number") or "")
-            # Se for LID com mais de 13 digitos ou sem DDI 55, tenta resolver
-            if not number or len(number) > 13 or (not number.startswith("55") and len(number) >= 12):
-                continue
-
-            name = (c.get("name") or c.get("push_name") or "").strip()
-            # Ignora nomes que são IDs técnicos (@lid ou @c.us)
-            if "@" in name or name.startswith("user_"):
-                name = ""
-
-            partner = self.env["maisfibra.whatsapp.message"]._find_partner(number)
-            if not partner:
-                final_name = name or number
-                partner = Partner.create({
-                    "name": final_name,
-                    "phone": number,
-                    "comment": f"Contato sincronizado do WhatsApp ({jid})"
-                })
-            elif name and partner.name == number:
-                partner.write({"name": name})
-
-            # Cria canal de chat direto em Discuss para o usuário
-            try:
-                chat = Channel.with_user(user)._get_or_create_chat(partners_to=[partner.id], pin=True)
-            except Exception as ex:
-                _logger.warning("Erro ao criar canal de chat em Discuss para %s: %s", partner.name, ex)
-
-            saved_contacts.append(c)
-
-        return saved_contacts
+        """Sincronização da agenda pessoal do WhatsApp em res.partner desativada por especificação."""
+        _logger.info(
+            "WhatsApp (user_%s): sincronização da agenda pessoal do WhatsApp está desativada; "
+            "mantendo apenas contatos cadastrados na plataforma.",
+            user_id or self.env.user.id,
+        )
+        return []
 
     @api.model
     def _chromium_send_text(self, number, text, user_id=None):

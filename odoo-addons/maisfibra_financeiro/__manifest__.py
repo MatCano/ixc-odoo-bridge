@@ -34,6 +34,7 @@ Módulo Financeiro Completo MaisFibra (Frente 3 + Boletos & Notas Fiscais):
         "views/integracao_log_views.xml",
         "views/res_partner_views.xml",
         "views/config_cobranca_views.xml",
+        "views/crm_lead_fatura_views.xml",
         "views/portal_pagamento_templates.xml",
         "views/menus.xml",
     ],

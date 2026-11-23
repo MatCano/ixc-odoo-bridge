@@ -11,6 +11,44 @@
                         icon="fa-search" invisible="not mf_cpf_cnpj"/>
             </xpath>
 
+            <xpath expr="//notebook" position="before">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 px-3 my-2 border rounded bg-light"
+                     invisible="type == 'lead' or not active">
+                    <field name="mf_can_stage_back" invisible="1"/>
+                    <field name="mf_can_stage_next" invisible="1"/>
+                    <field name="mf_next_stage_is_won" invisible="1"/>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-semibold text-uppercase">Etapa atual:</span>
+                        <span class="badge rounded-pill text-bg-primary px-3 py-2">
+                            <field name="mf_stage_name" readonly="1" nolabel="1"/>
+                        </span>
+                        <span class="text-muted small ms-2" invisible="not mf_can_stage_next">
+                            Próxima: <strong class="text-dark"><field name="mf_next_stage_name" readonly="1" nolabel="1"/></strong>
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button name="action_mf_stage_back"
+                                type="object"
+                                string="Back"
+                                icon="fa-arrow-left"
+                                class="btn btn-secondary btn-sm"
+                                invisible="not mf_can_stage_back"/>
+                        <button name="action_mf_stage_next"
+                                type="object"
+                                string="Next"
+                                icon="fa-arrow-right"
+                                class="btn btn-primary btn-sm"
+                                invisible="not mf_can_stage_next or mf_next_stage_is_won"/>
+                        <button name="action_mf_stage_next"
+                                type="object"
+                                string="Next (Ganho)"
+                                icon="fa-trophy"
+                                class="btn btn-success btn-sm"
+                                invisible="not mf_can_stage_next or not mf_next_stage_is_won"/>
+                    </div>
+                </div>
+            </xpath>
+
             <xpath expr="//notebook" position="inside">
                 <page string="Cliente &amp; Instalação" name="mf_instalacao">
                     <group>

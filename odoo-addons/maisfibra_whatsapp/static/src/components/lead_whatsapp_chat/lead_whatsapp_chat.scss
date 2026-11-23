@@ -1,0 +1,177 @@
+.o-mail-Form-chatter:has(.o-mf-wa-chatter-active),
+.o-mail-ChatterContainer:has(.o-mf-wa-chatter-active) {
+    padding-bottom: 0 !important;
+}
+
+body:has(.o-mf-wa-chatter-active) .o-mail-ChatHub:not(.o-dragged) .o-mail-ChatHub-bubbles {
+    display: none !important;
+}
+
+.o-mf-wa-tabs {
+    z-index: 5;
+}
+
+.o-mf-wa-chat {
+    height: 560px;
+    max-height: 75vh;
+    min-height: 0;
+    background-color: #efeae2;
+}
+
+.o-mf-wa-chat.o-mf-wa-chat-aside {
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+}
+
+.o-mf-wa-header {
+    background-color: #f0f2f5;
+}
+
+.o-mf-wa-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #00a884;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.o-mf-wa-title {
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.o-mf-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.28em 0.65em;
+}
+
+.o-mf-badge-ok {
+    background-color: #d1f4e0;
+    color: #0f5132;
+}
+
+.o-mf-badge-warn {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.o-mf-badge-muted {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.o-mf-wa-messages {
+    min-height: 0;
+    background-image: radial-gradient(rgba(17, 27, 33, 0.04) 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+
+.o-mf-wa-date-sep span {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #54656f;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.o-mf-wa-bubble {
+    max-width: 82%;
+    padding: 7px 10px 5px;
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(11, 20, 26, 0.13);
+    word-break: break-word;
+}
+
+.o-mf-wa-bubble-in {
+    background-color: #ffffff;
+    border-top-left-radius: 2px;
+}
+
+.o-mf-wa-bubble-out {
+    background-color: #d9fdd3;
+    border-top-right-radius: 2px;
+}
+
+.o-mf-wa-bubble-error {
+    border: 1px solid #f5c2c7;
+}
+
+.o-mf-wa-author {
+    font-size: 0.73rem;
+    color: #0b6e4f;
+}
+
+.o-mf-wa-text {
+    white-space: pre-wrap;
+    font-size: 0.875rem;
+    line-height: 1.38;
+    color: #111b21;
+}
+
+.o-mf-wa-meta {
+    font-size: 0.68rem;
+    color: #667781;
+}
+
+.o-mf-wa-img {
+    max-width: 240px;
+    max-height: 220px;
+    object-fit: cover;
+    display: block;
+}
+
+.o-mf-wa-audio {
+    width: 230px;
+    max-width: 100%;
+    height: 36px;
+}
+
+.o-mf-wa-video {
+    max-width: 240px;
+    max-height: 220px;
+    display: block;
+}
+
+.o-mf-wa-doc {
+    max-width: 230px;
+    background-color: rgba(11, 20, 26, 0.06);
+    color: #111b21;
+    font-size: 0.82rem;
+}
+
+.o-mf-wa-footer {
+    background-color: #f0f2f5;
+}
+
+.o-mf-wa-att-thumb {
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+}
+
+.o-mf-wa-input {
+    resize: none;
+    min-height: 44px;
+    max-height: 110px;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+.o-mf-wa-attach-btn,
+.o-mf-wa-send-btn {
+    height: 40px;
+}
+
+.o-mf-wa-retry .btn-xs {
+    padding: 0.1rem 0.45rem;
+    font-size: 0.72rem;
+}

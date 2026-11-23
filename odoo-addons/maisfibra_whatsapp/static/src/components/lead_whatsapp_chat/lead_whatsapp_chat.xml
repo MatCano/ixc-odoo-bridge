@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-inherit="mail.Chatter" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-Chatter')]" position="attributes">
+            <attribute name="t-att-class">{ 'overflow-auto o-scrollbar-thin': props.isChatterAside and !isWhatsappChatActive, 'overflow-hidden o-mf-wa-chatter-active': isWhatsappChatActive, 'o-chatter-disabled': props.threadId === false }</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o-mail-Chatter-top')]" position="before">
+            <div t-if="isWhatsappLeadChatter" class="o-mf-wa-tabs d-flex align-items-center gap-1 px-2 py-1 border-bottom bg-view flex-shrink-0 d-print-none">
+                <button type="button"
+                        class="btn btn-sm flex-grow-1 o-mf-wa-tab-btn"
+                        t-att-class="isWhatsappChatActive ? 'btn-success active' : 'btn-light'"
+                        t-on-click="() => this.setWhatsappChatterMode('whatsapp')">
+                    <i class="fa fa-whatsapp me-1"/>
+                    Chat WhatsApp
+                </button>
+                <button type="button"
+                        class="btn btn-sm flex-grow-1 o-mf-wa-tab-btn"
+                        t-att-class="!isWhatsappChatActive ? 'btn-primary active' : 'btn-light'"
+                        t-on-click="() => this.setWhatsappChatterMode('chatter')">
+                    <i class="fa fa-history me-1"/>
+                    Histórico / Notas
+                </button>
+            </div>
+            <LeadWhatsappChat t-if="isWhatsappChatActive"
+                              leadId="props.threadId"
+                              isAside="props.isChatterAside"
+                              onMessageSent.bind="onWhatsappMessageSent"
+                              t-key="props.threadId"/>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o-mail-Chatter-top')]" position="attributes">
+            <attribute name="t-if">!isWhatsappChatActive</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o-mail-Chatter-content')]" position="attributes">
+            <attribute name="t-if">!isWhatsappChatActive</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="maisfibra_whatsapp.LeadWhatsappChat">
+        <div class="o-mf-wa-chat d-flex flex-column w-100" t-att-class="{ 'o-mf-wa-chat-aside': props.isAside }">
+            <!-- Cabeçalho compacto -->
+            <div class="o-mf-wa-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom flex-shrink-0">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <div class="o-mf-wa-avatar d-flex align-items-center justify-content-center flex-shrink-0" t-esc="avatarInitial"/>
+                    <div class="min-w-0">
+                        <div class="fw-semibold text-truncate o-mf-wa-title" t-esc="state.contactName"/>
+                        <div class="small text-muted text-truncate">
+                            <t t-if="state.phone" t-esc="state.phone"/>
+                            <t t-else="">Sem telefone cadastrado</t>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <span t-attf-class="badge rounded-pill o-mf-badge {{ sessionBadge.cls }}" t-esc="sessionBadge.text"/>
+                    <button type="button" class="btn btn-sm btn-light o-mf-wa-refresh" title="Atualizar conversa" t-on-click="() => this.loadHistory()" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico cronológico acima -->
+            <div class="o-mf-wa-messages flex-grow-1 overflow-auto o-scrollbar-thin px-3 py-2" t-ref="messages">
+                <div t-if="state.loading and !state.messages.length" class="text-center text-muted py-5">
+                    <i class="fa fa-spinner fa-spin fa-lg mb-2 d-block"/>
+                    Carregando conversa...
+                </div>
+
+                <div t-elif="!state.messages.length" class="o-mf-wa-empty text-center text-muted py-5 px-3">
+                    <i class="fa fa-whatsapp fa-2x mb-2 d-block text-success opacity-75"/>
+                    <div class="fw-semibold mb-1">Nenhuma mensagem registrada ainda</div>
+                    <div class="small">Envie a primeira mensagem na caixa abaixo para iniciar a conversa com este lead.</div>
+                </div>
+
+                <t t-else="">
+                    <t t-foreach="groupedMessages" t-as="item" t-key="item.key">
+                        <div t-if="item.isSeparator" class="o-mf-wa-date-sep text-center my-2">
+                            <span t-esc="item.label"/>
+                        </div>
+
+                        <div t-else="" class="o-mf-wa-row d-flex mb-2" t-att-class="item.direction === 'out' ? 'justify-content-end' : 'justify-content-start'">
+                            <div class="o-mf-wa-bubble" t-att-class="{ 'o-mf-wa-bubble-out': item.direction === 'out', 'o-mf-wa-bubble-in': item.direction !== 'out', 'o-mf-wa-bubble-error': item.state === 'error' }">
+                                <div t-if="item.author_name" class="o-mf-wa-author small fw-semibold mb-1" t-esc="item.author_name"/>
+
+                                <div t-if="item.isImage" class="o-mf-wa-media mb-1">
+                                    <a t-att-href="item.media_url" target="_blank" rel="noopener noreferrer">
+                                        <img t-att-src="item.media_url" t-att-alt="item.media_filename || 'Imagem'" class="o-mf-wa-img rounded"/>
+                                    </a>
+                                </div>
+                                <div t-elif="item.isAudio" class="o-mf-wa-media mb-1">
+                                    <audio controls="controls" preload="metadata" class="o-mf-wa-audio" t-att-src="item.media_url"/>
+                                </div>
+                                <div t-elif="item.isVideo" class="o-mf-wa-media mb-1">
+                                    <video controls="controls" preload="metadata" class="o-mf-wa-video rounded" t-att-src="item.media_url"/>
+                                </div>
+                                <div t-elif="item.isDocument" class="o-mf-wa-media mb-1">
+                                    <a t-att-href="item.downloadUrl" target="_blank" rel="noopener noreferrer" class="o-mf-wa-doc d-inline-flex align-items-center gap-2 px-2 py-1 rounded text-decoration-none">
+                                        <i class="fa fa-file-o"/>
+                                        <span class="text-truncate" t-esc="item.media_filename || 'Baixar arquivo'"/>
+                                    </a>
+                                </div>
+
+                                <div t-if="item.displayBody" class="o-mf-wa-text" t-esc="item.displayBody"/>
+
+                                <div class="o-mf-wa-meta d-flex align-items-center justify-content-end gap-1 mt-1">
+                                    <span t-esc="item.timeLabel"/>
+                                    <t t-if="item.direction === 'out'">
+                                        <i t-if="item.state === 'sent'" class="fa fa-check text-primary" title="Enviada"/>
+                                        <i t-elif="item.state === 'queued'" class="fa fa-clock-o text-muted" title="Na fila"/>
+                                        <i t-elif="item.state === 'error'" class="fa fa-exclamation-circle text-danger" t-att-title="item.error_message || 'Erro no envio'"/>
+                                    </t>
+                                </div>
+
+                                <div t-if="item.state === 'error' and item.direction === 'out'" class="o-mf-wa-retry mt-1 pt-1 border-top d-flex align-items-center justify-content-between gap-2">
+                                    <span class="small text-danger text-truncate" t-esc="item.error_message || 'Falha no envio'"/>
+                                    <button type="button" class="btn btn-xs btn-outline-danger text-nowrap" t-on-click="() => this.onRetry(item.id)" t-att-disabled="state.retryingId === item.id">
+                                        <i class="fa fa-repeat me-1"/>
+                                        <t t-if="state.retryingId === item.id">Reenviando...</t>
+                                        <t t-else="">Tentar novamente</t>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+
+            <!-- Rodapé fixo: erro, anexo pendente e caixa de entrada de mensagem -->
+            <div class="o-mf-wa-footer border-top flex-shrink-0">
+                <div t-if="state.error" class="alert alert-warning py-1 px-2 mb-0 rounded-0 d-flex align-items-center justify-content-between small">
+                    <span class="text-truncate me-2" t-esc="state.error"/>
+                    <button type="button" class="btn-close btn-sm" aria-label="Fechar" t-on-click="() => this.state.error = ''"/>
+                </div>
+
+                <div t-if="state.pendingAttachment" class="o-mf-wa-attachment-bar d-flex align-items-center justify-content-between px-3 py-1 border-bottom bg-light">
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                        <img t-if="state.pendingAttachment.isImage" t-att-src="state.pendingAttachment.previewUrl" class="o-mf-wa-att-thumb rounded"/>
+                        <i t-else="" class="fa fa-paperclip text-muted"/>
+                        <span class="small text-truncate" t-esc="state.pendingAttachment.name"/>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0" title="Remover anexo" t-on-click="clearAttachment">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+
+                <div t-if="!state.canSend" class="px-3 py-2 text-center small text-muted bg-light">
+                    Cadastre um número de telefone válido neste lead para conversar via WhatsApp.
+                </div>
+
+                <div t-else="" class="o-mf-wa-composer d-flex align-items-end gap-2 p-2">
+                    <input type="file" class="d-none" t-ref="fileInput" t-on-change="onFileSelected"/>
+                    <button type="button" class="btn btn-light o-mf-wa-attach-btn flex-shrink-0" title="Anexar imagem, áudio ou documento" t-on-click="onClickAttach" t-att-disabled="state.sending">
+                        <i class="fa fa-paperclip fa-lg"/>
+                    </button>
+                    <textarea class="form-control o-mf-wa-input"
+                              rows="2"
+                              t-ref="composerInput"
+                              placeholder="Digite uma mensagem para o lead..."
+                              t-model="state.draft"
+                              t-on-keydown="onComposerKeydown"
+                              t-att-disabled="state.sending"/>
+                    <button type="button" class="btn btn-success o-mf-wa-send-btn flex-shrink-0" title="Enviar WhatsApp" t-on-click="onSend" t-att-disabled="!canSubmit">
+                        <i t-if="state.sending" class="fa fa-spinner fa-spin"/>
+                        <i t-else="" class="fa fa-paper-plane"/>
+                        <span class="ms-1 d-none d-sm-inline">Enviar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

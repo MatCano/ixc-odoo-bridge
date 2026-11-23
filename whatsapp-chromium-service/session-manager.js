@@ -183,10 +183,6 @@ class SessionManager {
           phone: sessionState.phone,
           push_name: sessionState.pushname
         }).catch(() => {});
-
-        this.syncContacts(uid).catch(err => {
-          console.warn(`[WhatsApp ${uid}] Initial contact sync notice:`, err.message);
-        });
       } catch (err) {
         console.error(`[WhatsApp ${uid}] Ready handler error:`, err);
       }
@@ -263,7 +259,7 @@ class SessionManager {
     const session = this.sessions.get(uid);
     try {
       const chatId = msg.fromMe ? msg.to : msg.from;
-      if (!chatId || chatId === 'status@broadcast' || chatId.includes('@g.us')) return;
+      if (!chatId || chatId === 'status@broadcast' || chatId.includes('@g.us') || chatId.includes('@newsletter')) return;
 
       const senderJid = msg.author || msg.from;
 

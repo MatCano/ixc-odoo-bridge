@@ -38,7 +38,6 @@
                                 <div class="mt16">
                                     <button name="action_start_whatsapp_session" string="Conectar / Gerar QR Code" type="object" class="btn btn-primary me-2"/>
                                     <button name="action_disconnect_whatsapp_session" string="Desconectar" type="object" class="btn btn-secondary me-2"/>
-                                    <button name="action_sync_whatsapp_contacts" string="Sincronizar Contatos" type="object" class="btn btn-outline-primary me-2"/>
                                     <button name="action_refresh_whatsapp_status" string="Atualizar Status" type="object" class="btn btn-link"/>
                                 </div>
 

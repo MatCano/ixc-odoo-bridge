@@ -15,4 +15,10 @@
             </xpath>
         </field>
     </record>
+
+    <record id="contacts.action_contacts" model="ir.actions.act_window">
+        <field name="domain">[('mf_whatsapp_sync', '=', False)]</field>
+    </record>
+
+    <function model="res.partner" name="_mf_cleanup_whatsapp_synced_contacts"/>
 </odoo>

@@ -9,3 +9,4 @@ from . import contrato_recorrente
 from . import cobranca
 from . import config_cobranca
 from . import res_partner_ext
+from . import crm_lead_fatura

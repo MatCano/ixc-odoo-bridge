@@ -126,7 +126,7 @@ class ResConfigSettings(models.TransientModel):
                 html = f"""
                 <div class="alert alert-success" style="max-width: 500px; margin-bottom: 0;">
                     <h5 style="margin-bottom: 5px;">✓ Sessão Ativa</h5>
-                    <p style="margin-bottom: 0;">WhatsApp conectado com sucesso para <b>{self.env.user.name}</b> ({phone} {pushname}). Suas mensagens e contatos estão sincronizados.</p>
+                    <p style="margin-bottom: 0;">WhatsApp conectado com sucesso para <b>{self.env.user.name}</b> ({phone} {pushname}). Sessão ativa para troca de mensagens com leads e contatos cadastrados na plataforma.</p>
                 </div>
                 """
             elif raw_status == "initializing":
@@ -186,15 +186,13 @@ class ResConfigSettings(models.TransientModel):
 
     def action_sync_whatsapp_contacts(self):
         self.ensure_one()
-        provider = self.env["maisfibra.whatsapp.provider"]
-        contacts = provider.sync_user_contacts(self.env.user.id)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Sincronização de Contatos",
-                "message": f"{len(contacts)} contatos sincronizados com sucesso e espelhados no painel de Mensagens Diretas.",
-                "type": "success",
+                "title": "Lista de Contatos",
+                "message": "A sincronização da agenda pessoal do WhatsApp está desativada. A página de Contatos exibe apenas contatos cadastrados na plataforma.",
+                "type": "info",
                 "sticky": False,
             }
         }

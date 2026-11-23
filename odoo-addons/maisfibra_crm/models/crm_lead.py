@@ -60,6 +60,83 @@ class CrmLead(models.Model):
 
     mf_stage_code = fields.Selection(related="stage_id.mf_code", string="Regra do estágio")
 
+    # --- Navegação sequencial de etapas (Back / Next) ---
+    mf_prev_stage_id = fields.Many2one("crm.stage", string="Etapa anterior", compute="_compute_mf_stage_nav")
+    mf_next_stage_id = fields.Many2one("crm.stage", string="Próxima etapa", compute="_compute_mf_stage_nav")
+    mf_can_stage_back = fields.Boolean(compute="_compute_mf_stage_nav")
+    mf_can_stage_next = fields.Boolean(compute="_compute_mf_stage_nav")
+    mf_next_stage_is_won = fields.Boolean(compute="_compute_mf_stage_nav")
+    mf_stage_name = fields.Char(related="stage_id.name", string="Nome da etapa atual", readonly=True)
+    mf_next_stage_name = fields.Char(related="mf_next_stage_id.name", string="Nome da próxima etapa", readonly=True)
+
+    def _mf_get_pipeline_stages(self):
+        self.ensure_one()
+        Stage = self.env["crm.stage"]
+        domain = []
+        if "team_ids" in Stage._fields:
+            if self.team_id:
+                domain = ["|", ("team_ids", "in", self.team_id.ids), ("team_ids", "=", False)]
+            else:
+                domain = [("team_ids", "=", False)]
+        elif "team_id" in Stage._fields:
+            domain = ["|", ("team_id", "=", self.team_id.id), ("team_id", "=", False)]
+        stages = Stage.search(domain, order="sequence asc, id asc")
+        if not stages:
+            stages = Stage.search([], order="sequence asc, id asc")
+        return stages.filtered(
+            lambda s: (not s.fold or s.id == self.stage_id.id) and s.mf_code != "perdemos"
+        )
+
+    @api.depends("stage_id", "team_id", "type", "active")
+    def _compute_mf_stage_nav(self):
+        for lead in self:
+            if lead.type != "opportunity" or not lead.active:
+                lead.mf_prev_stage_id = False
+                lead.mf_next_stage_id = False
+                lead.mf_can_stage_back = False
+                lead.mf_can_stage_next = False
+                lead.mf_next_stage_is_won = False
+                continue
+            stages = list(lead._mf_get_pipeline_stages())
+            prev_stage = False
+            next_stage = False
+            if lead.stage_id and lead.stage_id in stages:
+                idx = stages.index(lead.stage_id)
+                if idx > 0:
+                    prev_stage = stages[idx - 1]
+                if idx + 1 < len(stages):
+                    next_stage = stages[idx + 1]
+            elif stages:
+                next_stage = stages[0]
+            lead.mf_prev_stage_id = prev_stage
+            lead.mf_next_stage_id = next_stage
+            lead.mf_can_stage_back = bool(prev_stage)
+            lead.mf_can_stage_next = bool(next_stage)
+            lead.mf_next_stage_is_won = bool(next_stage and next_stage.is_won)
+
+    def action_mf_stage_back(self):
+        self.ensure_one()
+        if not self.mf_prev_stage_id:
+            raise UserError(_("Este lead já está na primeira etapa do funil."))
+        was_won = bool(self.stage_id.is_won)
+        self.write({"stage_id": self.mf_prev_stage_id.id})
+        if was_won:
+            self._compute_probabilities()
+            prob = self.automated_probability if (self.automated_probability or 0.0) < 100.0 else 50.0
+            self.write({"probability": prob})
+        return True
+
+    def action_mf_stage_next(self):
+        self.ensure_one()
+        if not self.mf_next_stage_id:
+            raise UserError(_("Este lead já está na última etapa do funil."))
+        target = self.mf_next_stage_id
+        vals = {"stage_id": target.id}
+        if target.is_won:
+            vals["probability"] = 100
+        self.write(vals)
+        return True
+
     # ------------------------------------------------------------------
     # Copia CPF/endereço do contato ao escolher o cliente
     # ------------------------------------------------------------------

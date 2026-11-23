@@ -27,7 +27,7 @@ class WhatsappComposer(models.TransientModel):
         partner = record.partner_id if is_lead else record
 
         # Cria mensagem do histórico
-        self.env["maisfibra.whatsapp.message"].sudo().create({
+        wa_msg = self.env["maisfibra.whatsapp.message"].sudo().create({
             "lead_id": record.id if is_lead else False,
             "partner_id": partner.id if partner else False,
             "phone": number,
@@ -37,6 +37,7 @@ class WhatsappComposer(models.TransientModel):
             "external_id": external_id or False,
             "user_id": self.env.user.id,
         })
+        self.env["maisfibra.whatsapp.message"]._notify_chat_bus(wa_msg)
 
         # Posta no Chatter do contato ou oportunidade
         self.env["maisfibra.whatsapp.message"]._post_on_record(

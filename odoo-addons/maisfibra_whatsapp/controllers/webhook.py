@@ -68,8 +68,14 @@ class WhatsappChromiumInbound(http.Controller):
         phone = payload.get("phone") or (payload.get("chat_id") or "").replace("@c.us", "")
         chat_id = payload.get("chat_id") or f"{phone}@c.us"
 
-        # Ignora mensagens de grupos ou transmissões
-        if "@g.us" in chat_id or "@g.us" in phone or "status@broadcast" in chat_id:
+        # Ignora mensagens de grupos, transmissões ou newsletters
+        if (
+            "@g.us" in chat_id
+            or "@g.us" in phone
+            or "@newsletter" in chat_id
+            or "@newsletter" in phone
+            or "status@broadcast" in chat_id
+        ):
             return Response(json.dumps({"status": "ignored", "reason": "group message"}), status=200, content_type="application/json")
 
         body = payload.get("body") or ""
@@ -114,20 +120,8 @@ class WhatsappChromiumInbound(http.Controller):
         if not clean_phone:
             return Response(json.dumps({"status": "ignored", "reason": "invalid phone"}), status=200, content_type="application/json")
 
-        # Procura parceiro existente pelo telefone cadastrado
+        # Procura apenas contato já cadastrado na plataforma (não cria contatos pessoais do WhatsApp em res.partner)
         partner = Message._find_partner(clean_phone)
-        if not partner:
-            # Não cria parceiros com nomes lixo ou IDs
-            final_name = sender_name or clean_phone
-            if "@" in final_name or final_name.startswith("user_"):
-                final_name = clean_phone
-
-            partner = Partner.create({
-                "name": final_name,
-                "phone": clean_phone,
-                "comment": f"Contato de WhatsApp ({chat_id})"
-            })
-
         user = User.browse(uid).exists() or User.browse(1)
 
         # Processa anexos de mídia (áudio/voz, imagem, vídeo ou documento)
@@ -150,52 +144,53 @@ class WhatsappChromiumInbound(http.Controller):
                     _logger.warning("Erro ao ler mídia do disco local: %s", read_err)
 
         user_partner = user.partner_id
-        dest_partner = partner.sudo()
+        dest_partner = partner.sudo() if partner else False
 
-        # Cria ou obtém canal direto no Discuss com o parceiro identificado
-        try:
-            channel = Channel.sudo().search([
-                ("channel_type", "=", "chat"),
-                ("channel_member_ids.partner_id", "=", user_partner.id),
-            ]).filtered(
-                lambda c: dest_partner.id in c.channel_member_ids.mapped("partner_id").ids
-            )[:1]
+        # Sincroniza no canal direto do Discuss apenas quando o contato já estiver cadastrado na plataforma
+        if dest_partner:
+            try:
+                channel = Channel.sudo().search([
+                    ("channel_type", "=", "chat"),
+                    ("channel_member_ids.partner_id", "=", user_partner.id),
+                ]).filtered(
+                    lambda c: dest_partner.id in c.channel_member_ids.mapped("partner_id").ids
+                )[:1]
 
-            if not channel:
-                channel = Channel.sudo().with_user(user)._get_or_create_chat(partners_to=[dest_partner.id], pin=True).sudo()
+                if not channel:
+                    channel = Channel.sudo().with_user(user)._get_or_create_chat(partners_to=[dest_partner.id], pin=True).sudo()
 
-            # Garante que o canal está pinado para o usuário
-            member = channel.channel_member_ids.filtered(lambda m: m.partner_id.id == user_partner.id)
-            if member:
-                member.sudo().write({"unpin_dt": False})
+                # Garante que o canal está pinado para o usuário
+                member = channel.channel_member_ids.filtered(lambda m: m.partner_id.id == user_partner.id)
+                if member:
+                    member.sudo().write({"unpin_dt": False})
 
-            # Cria anexo nativo do Odoo se for mídia
-            if media_base64 and media_mime:
-                try:
-                    ext = media_filename.split(".")[-1] if media_filename and "." in media_filename else "bin"
-                    att_name = media_filename or f"whatsapp_{external_id}.{ext}"
-                    att = request.env["ir.attachment"].sudo().create({
-                        "name": att_name,
-                        "datas": media_base64,
-                        "mimetype": media_mime,
-                        "res_model": "discuss.channel",
-                        "res_id": channel.id,
-                    })
-                    attachment_ids.append(att.id)
-                except Exception as att_err:
-                    _logger.warning("Erro ao criar ir.attachment para Discuss: %s", att_err)
+                # Cria anexo nativo do Odoo se for mídia
+                if media_base64 and media_mime:
+                    try:
+                        ext = media_filename.split(".")[-1] if media_filename and "." in media_filename else "bin"
+                        att_name = media_filename or f"whatsapp_{external_id}.{ext}"
+                        att = request.env["ir.attachment"].sudo().create({
+                            "name": att_name,
+                            "datas": media_base64,
+                            "mimetype": media_mime,
+                            "res_model": "discuss.channel",
+                            "res_id": channel.id,
+                        })
+                        attachment_ids.append(att.id)
+                    except Exception as att_err:
+                        _logger.warning("Erro ao criar ir.attachment para Discuss: %s", att_err)
 
-            # Posta no canal do Discuss
-            author = user_partner if from_me else dest_partner
-            channel.sudo().with_context(wa_skip_outbound=True, mail_create_nolog=True).message_post(
-                body=body or "",
-                attachment_ids=attachment_ids,
-                author_id=author.id,
-                message_type="comment",
-                subtype_xmlid="mail.mt_comment",
-            )
-        except Exception as ex:
-            _logger.exception("Falha ao postar no canal Discuss: %s", ex)
+                # Posta no canal do Discuss
+                author = user_partner if from_me else dest_partner
+                channel.sudo().with_context(wa_skip_outbound=True, mail_create_nolog=True).message_post(
+                    body=body or "",
+                    attachment_ids=attachment_ids,
+                    author_id=author.id,
+                    message_type="comment",
+                    subtype_xmlid="mail.mt_comment",
+                )
+            except Exception as ex:
+                _logger.exception("Falha ao postar no canal Discuss: %s", ex)
 
         # Processa mensagem no modelo CRM / Chatter
         try:
@@ -203,13 +198,18 @@ class WhatsappChromiumInbound(http.Controller):
                 number=clean_phone,
                 text=body or f"[{media_type}]",
                 external_id=external_id,
-                push_name=partner.name,
+                push_name=partner.name if partner else (sender_name or clean_phone),
                 from_me=from_me,
+                media_type=media_type,
+                media_url=media_url or False,
+                media_mime=media_mime or False,
+                media_filename=media_filename or False,
+                attachment_id=attachment_ids[0] if attachment_ids else False,
             )
         except Exception as ex:
             _logger.exception("Falha ao registrar mensagem recebida de %s: %s", clean_phone, ex)
 
-        return Response(json.dumps({"status": "success", "partner_id": partner.id}), status=200, content_type="application/json")
+        return Response(json.dumps({"status": "success", "partner_id": partner.id or False}), status=200, content_type="application/json")
 
 
 class WhatsappWebhook(http.Controller):
