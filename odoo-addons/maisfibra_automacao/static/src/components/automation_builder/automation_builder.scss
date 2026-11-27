@@ -1,0 +1,33 @@
+.o-mf-builder {
+    min-height: calc(100vh - 46px);
+}
+
+.o-mf-builder-palette {
+    width: 245px;
+    flex-shrink: 0;
+}
+
+.o-mf-builder-props {
+    width: 310px;
+    flex-shrink: 0;
+}
+
+.o-mf-builder-canvas {
+    background-color: #f8f9fa;
+    background-image: radial-gradient(#ced4da 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.o-mf-node {
+    user-select: none;
+    z-index: 2;
+}
+
+.o-mf-node-selected {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+}
+
+.btn-xs {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.72rem;
+}

@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="maisfibra_automacao.AutomationBuilder">
+        <div class="o-mf-builder d-flex flex-column h-100 w-100 bg-light">
+            <!-- Barra superior -->
+            <div class="o-mf-builder-topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 bg-white border-bottom shadow-sm">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" t-on-click="goBackToForm">
+                        <i class="fa fa-arrow-left me-1"/> Voltar
+                    </button>
+                    <div>
+                        <div class="fw-bold fs-5 d-flex align-items-center gap-2">
+                            <span t-esc="state.automation.name || 'Construtor Visual'"/>
+                            <span class="badge text-bg-secondary" t-if="state.automation.published_version_number">
+                                v<t t-esc="state.automation.published_version_number"/>
+                            </span>
+                            <span class="badge"
+                                  t-att-class="{
+                                      'text-bg-success': state.automation.state === 'active',
+                                      'text-bg-warning': state.automation.state === 'paused',
+                                      'text-bg-info': state.automation.state === 'draft',
+                                      'text-bg-dark': state.automation.state === 'archived'
+                                  }"
+                                  t-esc="state.automation.state"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button t-if="state.connectingFrom" type="button" class="btn btn-sm btn-warning" t-on-click="cancelConnect">
+                        <i class="fa fa-times me-1"/> Cancelar conexão (<t t-esc="state.connectingFrom.branch"/>)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" t-on-click="togglePreviewModal">
+                        <i class="fa fa-eye me-1"/> Prévia
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="validateFlow" t-att-disabled="state.saving">
+                        <i class="fa fa-check-square-o me-1"/> Validar
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" t-on-click="() => this.saveDraft(false)" t-att-disabled="state.saving">
+                        <i class="fa fa-save me-1"/> Salvar Rascunho
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" t-on-click="publishFlow" t-att-disabled="state.saving">
+                        <i class="fa fa-rocket me-1"/> Publicar
+                    </button>
+                    <button t-if="state.automation.state === 'active'" type="button" class="btn btn-sm btn-warning" t-on-click="pauseFlow">
+                        <i class="fa fa-pause me-1"/> Pausar
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.loading" class="p-5 text-center text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-2 d-block"/>
+                Carregando construtor de automação...
+            </div>
+
+            <div t-else="" class="o-mf-builder-workspace d-flex flex-grow-1 overflow-hidden">
+                <!-- Paleta esquerda -->
+                <div class="o-mf-builder-palette border-end bg-white p-2 overflow-auto">
+                    <div class="small fw-bold text-uppercase text-muted px-1 mb-2">Blocos Disponíveis</div>
+                    <t t-foreach="palette" t-as="grp" t-key="grp.key">
+                        <div class="mb-3">
+                            <div class="small fw-semibold px-1 py-1 rounded mb-1 text-white"
+                                 t-attf-style="background-color: {{ grp.color }};">
+                                <i t-attf-class="fa {{ grp.icon }} me-1"/>
+                                <t t-esc="grp.label"/>
+                            </div>
+                            <div class="d-grid gap-1">
+                                <t t-foreach="grp.items" t-as="item" t-key="item.node_type">
+                                    <button type="button"
+                                            class="btn btn-sm btn-light text-start border o-mf-palette-item"
+                                            t-on-click="() => this.addNodeFromPalette(grp.key, item)">
+                                        <i t-attf-class="fa {{ item.icon }} me-1 text-muted"/>
+                                        <t t-esc="item.name"/>
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Canvas central -->
+                <div class="o-mf-builder-canvas flex-grow-1 position-relative overflow-auto">
+                    <div t-if="state.validation.errors &amp;&amp; state.validation.errors.length"
+                         class="alert alert-warning m-2 py-1 px-2 small position-sticky top-0" style="z-index: 4;">
+                        <i class="fa fa-exclamation-triangle me-1"/>
+                        <strong>Pendências:</strong>
+                        <span t-esc="state.validation.errors.join(' · ')"/>
+                    </div>
+
+                    <div class="o-mf-canvas-board position-relative" style="min-width: 1400px; min-height: 950px;">
+                        <!-- Conexões SVG -->
+                        <svg class="o-mf-canvas-svg position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none;">
+                            <defs>
+                                <marker id="mfArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L8,3 z" fill="#495057"/>
+                                </marker>
+                            </defs>
+                            <t t-foreach="svgEdges" t-as="edge" t-key="edge.key">
+                                <g style="pointer-events: auto;">
+                                    <path t-att-d="edge.d"
+                                          fill="none"
+                                          t-att-stroke="edge.color"
+                                          stroke-width="2.5"
+                                          marker-end="url(#mfArrow)"/>
+                                    <text t-att-x="edge.midX"
+                                          t-att-y="edge.midY - 6"
+                                          text-anchor="middle"
+                                          font-size="10"
+                                          font-weight="bold"
+                                          t-att-fill="edge.color"
+                                          style="cursor: pointer;"
+                                          title="Clique para remover conexão"
+                                          t-on-click="() => this.removeEdge(edge.index)">
+                                        <t t-esc="edge.label"/> ×
+                                    </text>
+                                </g>
+                            </t>
+                        </svg>
+
+                        <!-- Blocos -->
+                        <t t-foreach="state.nodes" t-as="node" t-key="node.node_key">
+                            <div class="o-mf-node card shadow-sm position-absolute"
+                                 t-att-class="{
+                                     'border-primary o-mf-node-selected': state.selectedNodeKey === node.node_key,
+                                     'border-danger': getNodeErrors(node.node_key).length > 0
+                                 }"
+                                 t-attf-style="left: {{ node.pos_x }}px; top: {{ node.pos_y }}px; width: 220px;"
+                                 t-on-mousedown="(ev) => this.onNodeMouseDown(node.node_key, ev)"
+                                 t-on-click="() => this.selectNode(node.node_key)">
+                                <div class="card-header py-1 px-2 text-white d-flex justify-content-between align-items-center"
+                                     t-attf-style="background-color: {{ categoryColorMap[node.category] || '#495057' }}; cursor: move;">
+                                    <span class="small fw-bold text-truncate" t-esc="node.category"/>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-xs text-white p-0" title="Duplicar"
+                                                t-on-click="(ev) => this.duplicateNode(node.node_key, ev)">
+                                            <i class="fa fa-copy"/>
+                                        </button>
+                                        <button type="button" class="btn btn-xs text-white p-0" title="Excluir"
+                                                t-on-click="(ev) => this.removeNode(node.node_key, ev)">
+                                            <i class="fa fa-trash"/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="fw-semibold small text-truncate" t-esc="node.name"/>
+                                    <div class="text-muted" style="font-size: 11px;" t-esc="node.node_type"/>
+                                    <div t-if="getNodeErrors(node.node_key).length" class="text-danger mt-1" style="font-size: 11px;">
+                                        <i class="fa fa-exclamation-circle me-1"/>
+                                        <t t-esc="getNodeErrors(node.node_key)[0]"/>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1 mt-2">
+                                        <t t-foreach="getBranchesForNode(node)" t-as="br" t-key="br.code">
+                                            <button type="button"
+                                                    t-attf-class="btn btn-xs {{ br.cls }} py-0 px-1"
+                                                    t-on-click="(ev) => this.startConnect(node.node_key, br.code, ev)">
+                                                <t t-esc="br.label"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Painel direito de propriedades -->
+                <div class="o-mf-builder-props border-start bg-white p-3 overflow-auto">
+                    <div class="fw-bold border-bottom pb-2 mb-3">Propriedades</div>
+
+                    <div t-if="selectedNode" class="mb-4">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Título do Bloco</label>
+                            <input type="text" class="form-control form-control-sm" t-model="selectedNode.name"/>
+                        </div>
+
+                        <!-- Gatilho -->
+                        <div t-if="selectedNode.category === 'trigger'" class="d-grid gap-2">
+                            <div>
+                                <label class="form-label small fw-semibold">Objeto Principal</label>
+                                <select class="form-select form-select-sm" t-model="state.automation.model_name">
+                                    <option value="crm.lead">Leads e Oportunidades</option>
+                                    <option value="res.partner">Contatos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold">Evento Gatilho</label>
+                                <select class="form-select form-select-sm" t-model="state.automation.trigger_type">
+                                    <t t-foreach="state.catalog.trigger_types || []" t-as="tt" t-key="tt.code">
+                                        <option t-att-value="tt.code" t-esc="tt.label"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div t-if="['stage_entered', 'stage_exited'].includes(state.automation.trigger_type)">
+                                <label class="form-label small fw-semibold">Etapa Alvo</label>
+                                <select class="form-select form-select-sm" t-model.number="state.automation.trigger_stage_id">
+                                    <option value="0">-- Selecione --</option>
+                                    <t t-foreach="state.catalog.stages || []" t-as="st" t-key="st.id">
+                                        <option t-att-value="st.id" t-esc="st.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div t-if="state.automation.trigger_type === 'inactivity'">
+                                <label class="form-label small fw-semibold">Dias sem interação</label>
+                                <input type="number" min="1" class="form-control form-control-sm" t-model.number="state.automation.trigger_inactivity_days"/>
+                            </div>
+                            <div t-if="state.automation.trigger_type === 'webhook_received'">
+                                <label class="form-label small fw-semibold">Endpoint Webhook</label>
+                                <code class="d-block small p-1 bg-light border rounded text-break">
+                                    /maisfibra/automacao/webhook/<t t-esc="state.automation.webhook_token"/>
+                                </code>
+                            </div>
+                        </div>
+
+                        <!-- Condição / Espera por Condição -->
+                        <div t-if="selectedNode.node_type === 'condition_if' || selectedNode.node_type === 'wait_condition'" class="d-grid gap-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small fw-semibold">Regras</span>
+                                <select class="form-select form-select-sm w-auto" t-model="ensureConditionRules(selectedNode).logic">
+                                    <option value="AND">Todas (AND)</option>
+                                    <option value="OR">Qualquer (OR)</option>
+                                </select>
+                            </div>
+                            <t t-foreach="ensureConditionRules(selectedNode).rules" t-as="rule" t-key="rule_index">
+                                <div class="border rounded p-2 bg-light d-grid gap-1">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Campo (ex.: phone, expected_revenue)" t-model="rule.field"/>
+                                    <select class="form-select form-select-sm" t-model="rule.operator">
+                                        <t t-foreach="operators" t-as="op" t-key="op.code">
+                                            <option t-att-value="op.code" t-esc="op.label"/>
+                                        </t>
+                                    </select>
+                                    <input type="text" class="form-control form-control-sm" placeholder="Valor" t-model="rule.value"/>
+                                    <button type="button" class="btn btn-xs btn-outline-danger" t-on-click="() => this.removeConditionRule(selectedNode, rule_index)">
+                                        Remover Regra
+                                    </button>
+                                </div>
+                            </t>
+                            <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="() => this.addConditionRule(selectedNode)">
+                                + Adicionar Regra
+                            </button>
+                        </div>
+
+                        <!-- Segmento -->
+                        <div t-if="selectedNode.node_type === 'segment_check'">
+                            <label class="form-label small fw-semibold">Segmento</label>
+                            <select class="form-select form-select-sm" t-model.number="selectedNode.config.segment_id">
+                                <option value="0">-- Selecione --</option>
+                                <t t-foreach="state.catalog.segments || []" t-as="sg" t-key="sg.id">
+                                    <option t-att-value="sg.id" t-esc="sg.name"/>
+                                </t>
+                            </select>
+                        </div>
+
+                        <!-- Mover Etapa -->
+                        <div t-if="selectedNode.node_type === 'move_stage'" class="d-grid gap-2">
+                            <div>
+                                <label class="form-label small fw-semibold">Pipeline / Equipe</label>
+                                <select class="form-select form-select-sm" t-model.number="selectedNode.config.target_pipeline_id">
+                                    <option value="0">Manter pipeline atual</option>
+                                    <t t-foreach="state.catalog.teams || []" t-as="tm" t-key="tm.id">
+                                        <option t-att-value="tm.id" t-esc="tm.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold">Etapa de Destino</label>
+                                <select class="form-select form-select-sm" t-model.number="selectedNode.config.target_stage_id">
+                                    <option value="0">-- Selecione --</option>
+                                    <t t-foreach="state.catalog.stages || []" t-as="st" t-key="st.id">
+                                        <option t-att-value="st.id" t-esc="st.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Responsável -->
+                        <div t-if="selectedNode.node_type === 'assign_owner'">
+                            <label class="form-label small fw-semibold">Usuário Responsável</label>
+                            <select class="form-select form-select-sm" t-model.number="selectedNode.config.user_id">
+                                <option value="0">-- Selecione --</option>
+                                <t t-foreach="state.catalog.users || []" t-as="u" t-key="u.id">
+                                    <option t-att-value="u.id" t-esc="u.name"/>
+                                </t>
+                            </select>
+                        </div>
+
+                        <!-- Ganho / Perdido autorizado -->
+                        <div t-if="selectedNode.node_type === 'mark_won' || selectedNode.node_type === 'mark_lost'" class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" id="mfAuthWonLost" t-model="selectedNode.config.authorized"/>
+                            <label class="form-check-label small" for="mfAuthWonLost">Autorizo fechar oportunidade automaticamente</label>
+                        </div>
+
+                        <!-- Comunicação -->
+                        <div t-if="selectedNode.node_type === 'send_whatsapp' || selectedNode.node_type === 'send_email'" class="d-grid gap-2">
+                            <div t-if="selectedNode.node_type === 'send_email'">
+                                <label class="form-label small fw-semibold">Assunto</label>
+                                <input type="text" class="form-control form-control-sm" t-model="selectedNode.config.subject"/>
+                            </div>
+                            <div>
+                                <label class="form-label small fw-semibold">Mensagem</label>
+                                <textarea rows="4" class="form-control form-control-sm" t-model="selectedNode.config.body"/>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                <t t-foreach="templateVars" t-as="tv" t-key="tv">
+                                    <button type="button" class="btn btn-xs btn-light border" t-on-click="() => this.insertVariable(selectedNode, tv)" t-esc="tv"/>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Nota / Atividade / Campo / Webhook / Espera -->
+                        <div t-if="selectedNode.node_type === 'log_note'">
+                            <label class="form-label small fw-semibold">Texto da Nota</label>
+                            <textarea rows="3" class="form-control form-control-sm" t-model="selectedNode.config.body"/>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'create_activity' || selectedNode.node_type === 'create_task'" class="d-grid gap-2">
+                            <input type="text" class="form-control form-control-sm" placeholder="Resumo da tarefa/atividade" t-model="selectedNode.config.summary"/>
+                            <input type="number" min="0" class="form-control form-control-sm" placeholder="Prazo (dias)" t-model.number="selectedNode.config.due_days"/>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'update_field'" class="d-grid gap-2">
+                            <input type="text" class="form-control form-control-sm" placeholder="Nome técnico do campo" t-model="selectedNode.config.field_name"/>
+                            <input type="text" class="form-control form-control-sm" placeholder="Novo valor" t-model="selectedNode.config.value"/>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'wait_duration'" class="d-flex gap-2">
+                            <input type="number" min="1" class="form-control form-control-sm" t-model.number="selectedNode.config.amount"/>
+                            <select class="form-select form-select-sm" t-model="selectedNode.config.unit">
+                                <option value="minutes">Minutos</option>
+                                <option value="hours">Horas</option>
+                                <option value="days">Dias</option>
+                            </select>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'wait_reply' || selectedNode.node_type === 'wait_stage' || selectedNode.node_type === 'wait_activity'">
+                            <label class="form-label small fw-semibold">Timeout (minutos, 0 = sem limite)</label>
+                            <input type="number" min="0" class="form-control form-control-sm" t-model.number="selectedNode.config.timeout_minutes"/>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'call_webhook'">
+                            <label class="form-label small fw-semibold">URL do Webhook</label>
+                            <input type="url" class="form-control form-control-sm" placeholder="https://..." t-model="selectedNode.config.url"/>
+                        </div>
+                        <div t-if="selectedNode.node_type === 'start_automation'">
+                            <label class="form-label small fw-semibold">Automação de Destino</label>
+                            <select class="form-select form-select-sm" t-model.number="selectedNode.config.target_automation_id">
+                                <option value="0">-- Selecione --</option>
+                                <t t-foreach="state.catalog.automations || []" t-as="au" t-key="au.id">
+                                    <option t-att-value="au.id" t-esc="au.name"/>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3 small">
+                        <div class="fw-bold mb-2">Políticas do Fluxo</div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">Reentrada</label>
+                            <select class="form-select form-select-sm" t-model="state.automation.reentry_policy">
+                                <option value="never">Nunca reentrar</option>
+                                <option value="after_completion">Após conclusão anterior</option>
+                                <option value="after_interval">Após intervalo (horas)</option>
+                                <option value="always">Sempre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label small mb-1">Evento de Saída Antecipada</label>
+                            <select class="form-select form-select-sm" t-model="state.automation.exit_event">
+                                <option value="none">Nenhum</option>
+                                <option value="won">Oportunidade Ganha</option>
+                                <option value="lost">Oportunidade Perdida</option>
+                                <option value="won_or_lost">Ganha ou Perdida</option>
+                                <option value="reply_received">Resposta do Cliente</option>
+                                <option value="stage_changed">Mudança de Etapa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Prévia do Fluxo -->
+            <div t-if="state.showPreviewModal" class="o-mf-preview-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.45); z-index: 1050;">
+                <div class="card shadow-lg" style="width: 680px; max-width: 92vw;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Prévia dos Caminhos do Fluxo</strong>
+                        <button type="button" class="btn-close" t-on-click="togglePreviewModal"/>
+                    </div>
+                    <div class="card-body" style="max-height: 65vh; overflow: auto;">
+                        <div t-if="!state.previewPaths.length" class="text-muted">Nenhum caminho conectado a partir do gatilho.</div>
+                        <ul t-else="" class="list-group list-group-flush">
+                            <t t-foreach="state.previewPaths" t-as="p" t-key="p_index">
+                                <li class="list-group-item small" t-esc="p"/>
+                            </t>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-end">
+                        <button type="button" class="btn btn-sm btn-primary" t-on-click="togglePreviewModal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

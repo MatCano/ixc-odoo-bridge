@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cron_mf_automation_process_queue" model="ir.cron">
+        <field name="name">Automação CRM: processar fila, esperas e retentativas</field>
+        <field name="model_id" ref="model_mf_automation_execution"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_queue()</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_mf_automation_scheduled_triggers" model="ir.cron">
+        <field name="name">Automação CRM: avaliar inatividade, datas e vencimentos</field>
+        <field name="model_id" ref="model_mf_automation_execution"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_evaluate_scheduled_triggers()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

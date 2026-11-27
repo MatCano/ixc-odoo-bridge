@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mf_automation_list" model="ir.ui.view">
+        <field name="name">mf.automation.list</field>
+        <field name="model">mf.automation</field>
+        <field name="arch" type="xml">
+            <list string="Automações de CRM" decoration-success="state == 'active'" decoration-warning="state == 'paused'" decoration-muted="state == 'archived'">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="model_name"/>
+                <field name="trigger_type"/>
+                <field name="published_version_number" string="Versão"/>
+                <field name="execution_count"/>
+                <field name="completed_count"/>
+                <field name="failed_count" decoration-danger="failed_count &gt; 0"/>
+                <field name="last_execution_at"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'paused'"
+                       decoration-muted="state == 'archived'"/>
+                <button name="action_open_builder" type="object" string="Construtor" icon="fa-sitemap" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mf_automation_kanban" model="ir.ui.view">
+        <field name="name">mf.automation.kanban</field>
+        <field name="model">mf.automation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="trigger_type"/>
+                <field name="state"/>
+                <field name="published_version_number"/>
+                <field name="execution_count"/>
+                <field name="failed_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong class="o_kanban_record_title"><field name="name"/></strong>
+                            <span class="badge rounded-pill text-bg-secondary">v<field name="published_version_number"/></span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            <field name="category"/> · <field name="trigger_type"/>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small pt-1 border-top">
+                            <span>Execuções: <b><field name="execution_count"/></b> (Erros: <field name="failed_count"/>)</span>
+                            <button name="action_open_builder" type="object" class="btn btn-sm btn-primary py-0 px-2">
+                                Construtor
+                            </button>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_mf_automation_form" model="ir.ui.view">
+        <field name="name">mf.automation.form</field>
+        <field name="model">mf.automation</field>
+        <field name="arch" type="xml">
+            <form string="Automação de CRM">
+                <header>
+                    <button name="action_open_builder" type="object" string="Abrir Construtor Visual" icon="fa-sitemap" class="btn-primary"/>
+                    <button name="action_validate_flow" type="object" string="Validar Fluxo" icon="fa-check-square-o" class="btn-secondary"/>
+                    <button name="action_publish" type="object" string="Publicar / Ativar" icon="fa-rocket" class="btn-success"
+                            groups="maisfibra_automacao.group_automacao_admin"
+                            invisible="state == 'active'"/>
+                    <button name="action_publish" type="object" string="Publicar Nova Versão" icon="fa-upload" class="btn-success"
+                            groups="maisfibra_automacao.group_automacao_admin"
+                            invisible="state != 'active'"/>
+                    <button name="action_pause" type="object" string="Pausar" icon="fa-pause"
+                            groups="maisfibra_automacao.group_automacao_admin"
+                            invisible="state != 'active'"/>
+                    <button name="action_set_draft" type="object" string="Voltar p/ Rascunho" icon="fa-pencil"
+                            invisible="state == 'draft'"/>
+                    <button name="action_duplicate_automation" type="object" string="Duplicar" icon="fa-copy"/>
+                    <button name="action_archive_automation" type="object" string="Arquivar" icon="fa-archive"
+                            groups="maisfibra_automacao.group_automacao_admin"
+                            invisible="state == 'archived'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,paused,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_executions" type="object" class="oe_stat_button" icon="fa-cogs">
+                            <field name="execution_count" widget="statinfo" string="Execuções"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="not validation_errors_text">
+                        <strong>Erros de validação:</strong>
+                        <field name="validation_errors_text" readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ex.: Boas-vindas e Qualificação de Leads"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificação">
+                            <field name="category"/>
+                            <field name="responsible_id"/>
+                            <field name="model_name"/>
+                            <field name="published_version_id"/>
+                            <field name="description"/>
+                        </group>
+                        <group string="Métricas &amp; Webhook">
+                            <field name="completed_count"/>
+                            <field name="waiting_count"/>
+                            <field name="failed_count"/>
+                            <field name="last_execution_at"/>
+                            <field name="webhook_token" invisible="trigger_type != 'webhook_received'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Gatilho &amp; Segmentação" name="trigger">
+                            <group>
+                                <group string="Configuração do Gatilho">
+                                    <field name="trigger_type"/>
+                                    <field name="trigger_pipeline_id" invisible="model_name != 'crm.lead'"/>
+                                    <field name="trigger_stage_id" invisible="trigger_type not in ('stage_entered', 'stage_exited')"/>
+                                    <field name="trigger_field_name" invisible="trigger_type != 'field_changed'"/>
+                                    <field name="trigger_activity_state" invisible="trigger_type != 'activity_event'"/>
+                                    <field name="trigger_won_lost" invisible="trigger_type != 'lead_won_or_lost'"/>
+                                    <field name="trigger_segment_id" invisible="trigger_type != 'segment_entered'"/>
+                                    <field name="trigger_inactivity_days" invisible="trigger_type != 'inactivity'"/>
+                                    <field name="trigger_date_mode" invisible="trigger_type != 'date_trigger'"/>
+                                    <field name="trigger_date_fixed" invisible="trigger_type != 'date_trigger' or trigger_date_mode != 'fixed'"/>
+                                    <field name="trigger_date_field" invisible="trigger_type != 'date_trigger' or trigger_date_mode != 'relative_field'"/>
+                                    <field name="trigger_date_offset_days" invisible="trigger_type != 'date_trigger' or trigger_date_mode != 'relative_field'"/>
+                                </group>
+                                <group string="Filtros (JSON Declarativo)">
+                                    <field name="entry_filter_json"/>
+                                    <field name="stay_filter_json"/>
+                                    <field name="exit_event"/>
+                                    <field name="exit_filter_json" invisible="exit_event != 'condition_met'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Reentrada &amp; Versionamento" name="policies">
+                            <group>
+                                <group string="Políticas de Entrada / Saída">
+                                    <field name="allow_concurrent"/>
+                                    <field name="reentry_policy"/>
+                                    <field name="reentry_interval_hours" invisible="reentry_policy != 'after_interval'"/>
+                                    <field name="allow_reentry_after_exit"/>
+                                    <field name="cancel_pending_on_exit"/>
+                                </group>
+                                <group string="Versões Publicadas">
+                                    <field name="version_migration_policy"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Blocos &amp; Conexões" name="graph">
+                            <field name="node_ids">
+                                <list editable="bottom">
+                                    <field name="node_key"/>
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="node_type"/>
+                                    <field name="pos_x"/>
+                                    <field name="pos_y"/>
+                                    <field name="config_json"/>
+                                </list>
+                            </field>
+                            <field name="edge_ids">
+                                <list editable="bottom">
+                                    <field name="source_node_id"/>
+                                    <field name="branch"/>
+                                    <field name="target_node_id"/>
+                                    <field name="label"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Histórico de Versões" name="versions">
+                            <field name="version_ids" readonly="1">
+                                <list>
+                                    <field name="version_number"/>
+                                    <field name="name"/>
+                                    <field name="published_by"/>
+                                    <field name="published_at"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mf_automations" model="ir.actions.act_window">
+        <field name="name">Fluxos de Automação</field>
+        <field name="res_model">mf.automation</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Crie seu primeiro fluxo visual de automação de CRM</p>
+        </field>
+    </record>
+</odoo>

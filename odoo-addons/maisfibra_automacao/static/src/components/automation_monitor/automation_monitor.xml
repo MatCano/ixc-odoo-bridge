@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="maisfibra_automacao.AutomationMonitor">
+        <div class="o-mf-monitor p-3 h-100 overflow-auto bg-light">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <h3 class="mb-0 fw-bold">Monitoramento de Automações CRM</h3>
+                    <div class="small text-muted">Acompanhamento de filas, esperas, erros e reprocessamentos</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" t-on-click="loadData" t-att-disabled="state.loading">
+                    <i class="fa fa-refresh me-1" t-att-class="{ 'fa-spin': state.loading }"/> Atualizar
+                </button>
+            </div>
+
+            <!-- KPIs -->
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('all')">
+                        <div class="small text-muted">Total</div>
+                        <div class="fs-4 fw-bold" t-esc="state.kpis.total || 0"/>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('waiting')">
+                        <div class="small text-warning fw-semibold">Aguardando</div>
+                        <div class="fs-4 fw-bold text-warning" t-esc="state.kpis.waiting || 0"/>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('queued')">
+                        <div class="small text-info fw-semibold">Na Fila</div>
+                        <div class="fs-4 fw-bold text-info" t-esc="state.kpis.queued || 0"/>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('done')">
+                        <div class="small text-success fw-semibold">Concluídas</div>
+                        <div class="fs-4 fw-bold text-success" t-esc="state.kpis.done || 0"/>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('failed')">
+                        <div class="small text-danger fw-semibold">Com Falha</div>
+                        <div class="fs-4 fw-bold text-danger" t-esc="state.kpis.failed || 0"/>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="card p-2 text-center cursor-pointer" t-on-click="() => this.setFilter('cancelled')">
+                        <div class="small text-muted">Canceladas</div>
+                        <div class="fs-4 fw-bold text-muted" t-esc="state.kpis.cancelled || 0"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Execução</th>
+                                <th>Automação (v)</th>
+                                <th>Registro</th>
+                                <th>Bloco Atual</th>
+                                <th>Status</th>
+                                <th>Tentativas</th>
+                                <th>Erro / Motivo</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-if="!state.executions.length">
+                                <td colspan="8" class="text-center text-muted py-4">Nenhuma execução encontrada para este filtro.</td>
+                            </tr>
+                            <t t-foreach="state.executions" t-as="ex" t-key="ex.id">
+                                <tr>
+                                    <td><a href="#" class="fw-semibold" t-on-click.prevent="() => this.openExecution(ex.id)" t-esc="ex.name"/></td>
+                                    <td><t t-esc="ex.automation_name"/> <span class="badge text-bg-light">v<t t-esc="ex.version"/></span></td>
+                                    <td t-esc="ex.record_name"/>
+                                    <td t-esc="ex.current_node_name"/>
+                                    <td><span t-attf-class="badge {{ getBadgeClass(ex.state) }}" t-esc="ex.state"/></td>
+                                    <td t-esc="ex.retry_count"/>
+                                    <td class="small text-danger text-truncate" style="max-width: 240px;" t-esc="ex.last_error || ex.exit_reason || '—'"/>
+                                    <td class="text-end text-nowrap">
+                                        <button t-if="['failed', 'queued', 'waiting'].includes(ex.state)" type="button" class="btn btn-xs btn-outline-primary me-1" t-on-click="() => this.retryExecution(ex.id)">
+                                            Reprocessar
+                                        </button>
+                                        <button t-if="!['done', 'cancelled'].includes(ex.state)" type="button" class="btn btn-xs btn-outline-secondary" t-on-click="() => this.cancelExecution(ex.id)">
+                                            Cancelar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

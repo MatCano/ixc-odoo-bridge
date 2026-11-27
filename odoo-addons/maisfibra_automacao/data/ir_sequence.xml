@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_mf_automation_execution" model="ir.sequence">
+        <field name="name">Execução de Automação CRM</field>
+        <field name="code">mf.automation.execution</field>
+        <field name="prefix">AUT/%(year)s/</field>
+        <field name="padding">6</field>
+    </record>
+</odoo>

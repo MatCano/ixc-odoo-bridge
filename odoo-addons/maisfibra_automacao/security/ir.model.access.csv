@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mf_automation_viewer,mf.automation.viewer,model_mf_automation,group_automacao_viewer,1,0,0,0
+access_mf_automation_editor,mf.automation.editor,model_mf_automation,group_automacao_editor,1,1,1,0
+access_mf_automation_admin,mf.automation.admin,model_mf_automation,group_automacao_admin,1,1,1,1
+access_mf_automation_version_viewer,mf.automation.version.viewer,model_mf_automation_version,group_automacao_viewer,1,0,0,0
+access_mf_automation_version_admin,mf.automation.version.admin,model_mf_automation_version,group_automacao_admin,1,1,1,1
+access_mf_automation_node_viewer,mf.automation.node.viewer,model_mf_automation_node,group_automacao_viewer,1,0,0,0
+access_mf_automation_node_editor,mf.automation.node.editor,model_mf_automation_node,group_automacao_editor,1,1,1,1
+access_mf_automation_edge_viewer,mf.automation.edge.viewer,model_mf_automation_edge,group_automacao_viewer,1,0,0,0
+access_mf_automation_edge_editor,mf.automation.edge.editor,model_mf_automation_edge,group_automacao_editor,1,1,1,1
+access_mf_automation_segment_viewer,mf.automation.segment.viewer,model_mf_automation_segment,group_automacao_viewer,1,0,0,0
+access_mf_automation_segment_editor,mf.automation.segment.editor,model_mf_automation_segment,group_automacao_editor,1,1,1,1
+access_mf_automation_execution_viewer,mf.automation.execution.viewer,model_mf_automation_execution,group_automacao_viewer,1,0,0,0
+access_mf_automation_execution_editor,mf.automation.execution.editor,model_mf_automation_execution,group_automacao_editor,1,1,0,0
+access_mf_automation_execution_admin,mf.automation.execution.admin,model_mf_automation_execution,group_automacao_admin,1,1,1,1
+access_mf_automation_step_log_viewer,mf.automation.step.log.viewer,model_mf_automation_step_log,group_automacao_viewer,1,0,0,0
+access_mf_automation_step_log_admin,mf.automation.step.log.admin,model_mf_automation_step_log,group_automacao_admin,1,1,1,1
